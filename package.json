@@ -1,0 +1,20 @@
+{
+  "name": "fiper-backend",
+  "version": "0.1.0",
+  "description": "Market intelligence API — aggregates, caches and interprets market data for the Fiper terminal",
+  "type": "module",
+  "main": "src/index.js",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "status": "node --input-type=module -e \"const r=await fetch('http://localhost:8080/api/status');console.log(JSON.stringify(await r.json(),null,2))\""
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "ws": "^8.18.0"
+  }
+}

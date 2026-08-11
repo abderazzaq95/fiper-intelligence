@@ -1,0 +1,160 @@
+/* Shared styling for /login, /register, /forgot-password, /auth/reset-password.
+   Values specified exactly by the design brief — sampled from the same
+   brand system as the landing page (mrkt-fiper-landing.html's --bg/--card/
+   --border2 tokens), not the terminal's darker --shell/--panel scheme,
+   since these are public-facing entry pages, not dashboard surfaces. Kept
+   as its own module rather than reusing landing.module.css so auth stays
+   a self-contained unit, same pattern as terminal/landing each owning
+   their own CSS module. */
+
+.page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #002347;
+}
+
+.card {
+  width: 100%;
+  max-width: 400px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(210, 43, 43, 0.45);
+  border-radius: 14px;
+  padding: 40px 36px;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.logo {
+  display: block;
+  margin: 0 auto 20px;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 14px rgba(154, 20, 20, 0.55));
+}
+
+.heading {
+  font-family: var(--font-playfair), Georgia, serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.85rem;
+  color: #93b6dc;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 28px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #93b6dc;
+  letter-spacing: 0.01em;
+}
+
+.input {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.92rem;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 11px 14px;
+  outline: none;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.input::placeholder {
+  color: #4e7fb0;
+}
+
+.input:focus {
+  border-color: rgba(210, 43, 43, 0.6);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.button {
+  font-family: var(--font-inter), sans-serif;
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: #ffffff;
+  background: linear-gradient(135deg, #e53838, #971212);
+  border: none;
+  border-radius: 8px;
+  padding: 13px 20px;
+  margin-top: 4px;
+  cursor: pointer;
+  transition: box-shadow 0.25s, transform 0.2s, opacity 0.2s;
+}
+
+.button:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(196, 38, 38, 0.45);
+  transform: translateY(-1px);
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.error {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: #ff5470;
+  background: rgba(255, 84, 112, 0.1);
+  border: 1px solid rgba(255, 84, 112, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.success {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+  color: #00d084;
+  background: rgba(0, 208, 132, 0.1);
+  border: 1px solid rgba(0, 208, 132, 0.3);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+
+.links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  font-family: var(--font-inter), sans-serif;
+  font-size: 0.82rem;
+}
+
+.link {
+  color: #93b6dc;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.link:hover {
+  color: #ffffff;
+}

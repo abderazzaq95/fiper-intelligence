@@ -1,0 +1,893 @@
+/* UI copy for the terminal shell + all 12 screens. Canonical/data-layer
+   strings (direction labels, pattern names, badge text, breadcrumbs) live
+   in common.ts instead — this file is purely static chrome: titles,
+   notes, labels, empty states, table headers, and the long-form narrative
+   text in Backtest/Crypto that's assembled from template literals in the
+   original components (ported here as functions taking the same
+   variables, so the Arabic sentences are written as real sentences, not
+   concatenated fragments). */
+
+export const en = {
+  shell: {
+    utc: 'UTC',
+    alerts: 'Alerts',
+    signOut: 'Sign out',
+    menu: 'Menu',
+    fiper: 'Fiper',
+    intelligence: 'Intelligence',
+    backend: 'Backend',
+  },
+
+  home: {
+    riskEnvironment: 'Risk Environment',
+    model: 'Model',
+    nextReleases: 'Next Releases',
+    fullCalendar: 'Full calendar',
+    nothingLeftToday: 'Nothing left today.',
+    dailyBias: 'Daily Bias',
+    updated: (time: string) => `Updated ${time}`,
+    swing: 'Swing',
+    day: 'Day',
+    liveFeed: 'Live Feed',
+  },
+
+  headlines: {
+    all: 'All',
+    forex: 'Forex',
+    indices: 'Indices',
+    commodities: 'Commodities',
+    crypto: 'Crypto',
+    empty: 'No headlines in this category right now.',
+    whyItMatters: 'Why it matters —',
+  },
+
+  calendar: {
+    dows: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
+    eventsCount: (n: number, hi: number) => (hi ? `${n} events · ${hi} high` : `${n} events`),
+    dayTitle: (dow: string, n: number) => `${dow} — ${n} events`,
+    consensusNote: 'Consensus vs bank forecast range',
+    noForecast: 'No numeric forecast',
+    released: 'Released',
+    upcoming: 'Upcoming',
+    prev: 'Prev',
+    cons: 'Cons',
+    actual: 'Actual',
+    noEvents: 'No events scheduled.',
+    dash: '—',
+  },
+
+  bias: {
+    noData: 'No data for this asset.',
+    todaySuffix: (name: string) => `${name} · Today`,
+    confidence: 'Confidence',
+    swingLine: (v: string) => `Swing · ${v}`,
+    dayLine: (v: string) => `Day · ${v}`,
+    riskGaugeLine: (v: number) => `Risk gauge ${v}`,
+    keyLevels: 'Key Levels',
+    levels: {
+      resistance2: 'Resistance 2',
+      resistance1: 'Resistance 1',
+      current: 'Current',
+      support1: 'Support 1',
+      support2: 'Support 2',
+    },
+    whatsDrivingIt: "What's driving it",
+    derivedNote: 'Derived from live prices + risk gauge',
+    // buildReasons() sentence templates — bias.ts is never edited, these
+    // mirror its exact template shapes (including the embedded <b> tag,
+    // since BiasScreen renders reason.t via dangerouslySetInnerHTML).
+    reasons: {
+      upMomentum: (sym: string, chg: string) =>
+        `<b style="color:var(--text)">${sym}</b> up ${chg}% on the session, keeping short-term momentum constructive.`,
+      downMomentum: (sym: string, chg: string) =>
+        `<b style="color:var(--text)">${sym}</b> down ${chg}% on the session, so intraday momentum is against longs.`,
+      riskHigh: (risk: number) =>
+        `Risk appetite reads <b style="color:var(--text)">${risk}/100</b> — equities and crypto are leading, which favours cyclical exposure over havens.`,
+      riskLow: (risk: number) =>
+        `Risk appetite reads <b style="color:var(--text)">${risk}/100</b> — defensive flows dominate, which favours gold and the dollar over equities.`,
+      riskBalanced: (risk: number) =>
+        `Risk appetite is balanced at <b style="color:var(--text)">${risk}/100</b>, so macro is not currently the dominant driver.`,
+      dollarFirmer: (dxy: string) => `The dollar index is firmer (${dxy}%), a headwind for dollar-denominated assets.`,
+      dollarSofter: (dxy: string) => `The dollar index is softer (${dxy}%), which is generally supportive here.`,
+      highImpactNews: (n: number, plural: string) =>
+        `<b style="color:var(--text)">${n}</b> high-impact ${plural} in the feed reference this market directly.`,
+      headline: 'headline',
+      headlines: 'headlines',
+      upcomingEvent: (name: string, ccy: string, time: string) =>
+        `<b style="color:var(--text)">${name}</b> (${ccy}) is still to come at ${time} — size positions with that in mind.`,
+    },
+  },
+
+  global: {
+    heatMap: 'Performance Heat Map',
+    change24h: '24h change',
+    crypto: 'Crypto',
+  },
+
+  flows: {
+    currencyStrength: 'Currency Strength',
+    deviationNote: (date: string) => `Deviation from the 30-day reference basket. Rates: ${date}`,
+    assetClassFlows: 'Asset Class Flows',
+    net5d: 'Net 5-day',
+    classes: {
+      'US Equities': 'US Equities',
+      'EU Equities': 'EU Equities',
+      'Precious Metals': 'Precious Metals',
+      Energy: 'Energy',
+      Crypto: 'Crypto',
+      Dollar: 'Dollar',
+    },
+    positioningDivergence: 'Positioning Divergence',
+    institutionalVsRetail: 'Institutional vs retail',
+    largeSpecs: 'Large speculators (funds)',
+    commercials: 'Commercials (hedgers)',
+    netLong: 'Net long',
+    netShort: 'Net short',
+    loading: 'Positioning data loading…',
+  },
+
+  cot: {
+    loading: 'Loading CFTC data…',
+    largeSpecNetPosition: 'Large Speculator Net Position',
+    wow: 'w/w',
+    fundsNetLong: () => `Funds are net long — positioning supports upside continuation.`,
+    fundsNetShort: () => `Funds are net short — positioning leans against rallies.`,
+    longShortSplit: 'Long / Short Split',
+    openInterest: (n: string) => `Open interest ${n}`,
+    largeSpecsLabel: 'Large speculators',
+    longPct: (n: string) => `${n}% long`,
+    shortPct: (n: string) => `${n}% short`,
+    commercialsLabel: 'Commercials (hedgers)',
+    crowdedLong: 'Speculative longs are crowded. Historically an extreme reading — squeeze risk rises.',
+    crowdedShort: 'Speculative shorts are crowded. Historically an extreme reading — squeeze risk rises.',
+    normalRange: 'Positioning is within its normal range, so it is not a contrarian signal right now.',
+    weeklyHistory: 'Weekly History',
+    sourceNote: 'Source: CFTC Commitments of Traders',
+    table: {
+      reportDate: 'Report date',
+      specLong: 'Spec long',
+      specShort: 'Spec short',
+      specNet: 'Spec net',
+      commLong: 'Comm long',
+      commShort: 'Comm short',
+      openInterest: 'Open interest',
+    },
+  },
+
+  forecasts: {
+    driverNames: {
+      'Fed policy cycle': 'Fed policy cycle',
+      'Risk appetite': 'Risk appetite',
+      'Dollar direction': 'Dollar direction',
+      Positioning: 'Positioning',
+    },
+    driverValues: {
+      Supportive: 'Supportive',
+      Restrictive: 'Restrictive',
+      'Risk-on': 'Risk-on',
+      'Risk-off': 'Risk-off',
+      Balanced: 'Balanced',
+      Strengthening: 'Strengthening',
+      Softening: 'Softening',
+      'No COT': 'No COT',
+      'Net long': 'Net long',
+      'Net short': 'Net short',
+    },
+    weekLine: (name: string) => `${name} · 1 week`,
+    cryptoFallback: 'Crypto',
+    confidence: 'Confidence',
+    conservative: 'Conservative',
+    base: 'Base',
+    stretch: 'Stretch',
+  },
+
+  candles: {
+    candleAnalysis: 'Candle Analysis',
+    binanceLive: 'Binance Live',
+    model: 'Model',
+    patternsDetected: 'Patterns Detected',
+    last30: 'Last 30 candles',
+    noPatterns: 'No textbook patterns in the last 30 candles. Price is trending without clear reversal signatures.',
+    multiTimeframeTrend: 'Multi-Timeframe Trend',
+    trend: { Uptrend: 'Uptrend', Downtrend: 'Downtrend', Ranging: 'Ranging' },
+    maSpread: (n: string) => `10/20 MA spread ${n}%`,
+    whyFormed: 'Why This Candle Formed',
+    up: 'Up',
+    down: 'Down',
+    rangePct: (n: string) => `Range ${n}%`,
+    volumeX: (n: string) => `Volume ${n}× avg`,
+    closedSentence: (tf: string, dir: string, pct: string, range: string) =>
+      `The current ${tf} candle closed ${dir} ${pct}% with a ${range}% range.`,
+    wideRange: 'That is a wide range — participation was elevated.',
+    containedRange: 'Range is contained, so this is orderly rather than impulsive movement.',
+    volumeSentence: (x: string) => `Volume ran at ${x}× the 20-period average.`,
+    volumeConfirms: 'Elevated volume behind a directional candle tends to confirm the move rather than fade it.',
+    volumeUnremarkable: 'Volume is unremarkable, which weakens any conclusion drawn from this candle alone.',
+    riskSentence: (risk: number, withOrAgainst: string) =>
+      `Broader risk appetite sits at ${risk}/100. Crypto is a high-beta expression of risk, so this candle is ${withOrAgainst} the macro tape.`,
+    movingWith: 'moving with',
+    fighting: 'fighting',
+    concurrentNews: (headline: string) => `Concurrent high-impact headline: ${headline}…`,
+    newsEvents: 'News Events',
+    connectNewsFeed: 'Connect a news feed to see events — add MARKETAUX_KEY or FINNHUB_KEY to backend/.env',
+    closePopup: 'Close',
+  },
+
+  backtest: {
+    condOptions: { 'Beat forecast': 'Beat forecast', 'Missed forecast': 'Missed forecast', 'Any result': 'Any result' },
+    winOptions: { '30 minutes': '30 minutes', '4 hours': '4 hours', '1 day': '1 day', '5 days': '5 days' },
+    title: 'Fundamental Backtest',
+    subtitle: 'How an asset reacted to a macro event historically',
+    asset: 'Asset',
+    event: 'Event',
+    outcome: 'Outcome',
+    measuredOver: 'Measured over',
+    runBacktest: 'Run backtest',
+    result: 'Result',
+    resultLine: (asset: string, event: string, filter: string, years: number) =>
+      `${asset} after ${event} · ${filter} · ${years}y`,
+    filterAll: 'all releases',
+    filterBeats: 'beats only',
+    filterMisses: 'misses only',
+    instances: 'Instances',
+    avgMove: 'Average move',
+    hitRate: 'Directional hit rate',
+    stdDev: 'Std deviation',
+    best: 'Best:',
+    worst: 'Worst:',
+    measuredOverColon: 'Measured over:',
+    unit: { min: 'min', hours: 'hours', days: 'days' },
+    // the reliability warning — CLAUDE.md-flagged constraint, keep verbatim in meaning
+    reliabilityWarning: (n: number, plural: string) =>
+      `Only ${n} historical instance${plural} matched. Below 8 observations the average and hit rate are indicative, not statistically reliable — a single outlier can flip the sign. Widen the outcome filter or pick a more frequent release.`,
+    instancePlural: { one: '', many: 's' },
+    reliableSummary: (n: number, asset: string, avg: string, winRate: string) =>
+      `Across ${n} releases, ${asset} moved ${avg}% on average, in the same direction ${winRate}% of the time.`,
+    consistentReaction: 'That is a reasonably consistent reaction — the relationship has held.',
+    mildEdge: 'The edge is mild. Direction is more coin-flip than reliable.',
+    noEdge: 'There is no dependable directional edge here; dispersion dominates.',
+    everyInstance: 'Every Instance',
+    model: 'Model',
+    table: {
+      releaseDate: 'Release date',
+      result: 'Result',
+      surprise: 'Surprise',
+      reaction: 'Reaction',
+      move: 'Move',
+    },
+    beat: 'Beat',
+    miss: 'Miss',
+    events: {
+      'US Core CPI m/m': 'US Core CPI m/m',
+      'US Non-Farm Payrolls': 'US Non-Farm Payrolls',
+      'FOMC Rate Decision': 'FOMC Rate Decision',
+      'US ISM Manufacturing': 'US ISM Manufacturing',
+      'ECB Rate Decision': 'ECB Rate Decision',
+      'BoE Rate Decision': 'BoE Rate Decision',
+      'BoJ Policy Statement': 'BoJ Policy Statement',
+      'US GDP q/q Advance': 'US GDP q/q Advance',
+      'US Core PCE m/m': 'US Core PCE m/m',
+      'EIA Crude Inventories': 'EIA Crude Inventories',
+    },
+  },
+
+  stocks: {
+    searchPlaceholder: 'Search a ticker — NVDA, AAPL, JPM, XOM…',
+    search: 'Search',
+    noCoverage: (ticker: string) => `No coverage for "${ticker}"`,
+    coverageNote: 'Coverage is limited to the tickers above. Wire a fundamentals API to expand it.',
+    model: 'Model',
+    fund: {
+      marketCap: 'Market cap',
+      pe: 'P/E',
+      eps: 'EPS (ttm)',
+      dividend: 'Dividend',
+      revenue: 'Revenue (ttm)',
+      revGrowth: 'Rev growth',
+      beta: 'Beta',
+    },
+    macroSensitivity: 'Macro Sensitivity',
+    correlationNote: 'Correlation to each factor',
+    sensitivitySentence: (stock: string, factor: string) =>
+      `Positive means the stock rises when that factor rises. ${stock} is most sensitive to ${factor}.`,
+    upcomingCatalysts: 'Upcoming Catalysts',
+    bullCase: 'Bull case',
+    bearCase: 'Bear case',
+    sectors: {
+      Semiconductors: 'Semiconductors',
+      'Consumer Electronics': 'Consumer Electronics',
+      Banking: 'Banking',
+      Energy: 'Energy',
+    },
+    sensFactors: {
+      'Fed rate path': 'Fed rate path',
+      'Dollar strength': 'Dollar strength',
+      'Oil price': 'Oil price',
+      'Risk appetite': 'Risk appetite',
+      '10Y yield': '10Y yield',
+    },
+    // Per-ticker bull/bear case bullets + upcoming-catalyst [category, description]
+    // tuples. Mirrors StocksScreen.tsx's local STOCKS object exactly (same 4
+    // tickers, same order, same bullet count) so the component can index this
+    // by symbol instead of reading English prose straight off STOCKS.
+    stockContent: {
+      NVDA: {
+        bull: [
+          'Data-centre capex from hyperscalers shows no sign of slowing into next year',
+          'Software moat via CUDA keeps switching costs high for existing customers',
+          'Guidance has beaten consensus for eight consecutive quarters',
+        ],
+        bear: [
+          'Valuation prices in near-perfect execution — little room for a miss',
+          'Customer concentration: a handful of buyers drive most revenue',
+          'Custom silicon from those same customers is a structural long-term threat',
+        ],
+        cat: [
+          ['Earnings', 'Q3 results after close'],
+          ['Fed', 'FOMC decision — rate-sensitive'],
+          ['Conference', 'GTC keynote'],
+        ] as [string, string][],
+      },
+      AAPL: {
+        bull: [
+          'Services revenue is now high-margin and recurring, smoothing hardware cycles',
+          'Installed base above 2bn devices gives durable pricing power',
+          'Buyback programme remains the largest in the market',
+        ],
+        bear: [
+          'China exposure is both a demand risk and a supply concentration risk',
+          'Hardware upgrade cycles have lengthened materially',
+          'Regulatory pressure on App Store economics in the EU and US',
+        ],
+        cat: [
+          ['Earnings', 'Q4 results'],
+          ['Product', 'Autumn hardware event'],
+          ['Legal', 'EU DMA compliance ruling'],
+        ] as [string, string][],
+      },
+      JPM: {
+        bull: [
+          'Net interest income benefits directly from a higher-for-longer rate path',
+          'Fortress balance sheet wins deposits during any stress episode',
+          'Investment banking fee pipeline rebuilding as issuance returns',
+        ],
+        bear: [
+          'Credit normalisation in cards and CRE is still working through',
+          'Rate cuts compress net interest margin from here',
+          'Capital requirements under Basel endgame remain unresolved',
+        ],
+        cat: [
+          ['Earnings', 'Q3 results pre-market'],
+          ['Fed', 'FOMC — direct NIM impact'],
+          ['Regulatory', 'Stress test results'],
+        ] as [string, string][],
+      },
+      XOM: {
+        bull: [
+          'Guyana and Permian assets sit at the low end of the global cost curve',
+          'Free cash flow supports both dividend growth and buybacks at moderate crude',
+          'Refining margins have held up better than the market expected',
+        ],
+        bear: [
+          'Earnings are ultimately a leveraged bet on the crude price',
+          'Capital discipline is under pressure as production targets rise',
+          'Energy transition policy risk compounds over a long horizon',
+        ],
+        cat: [
+          ['Earnings', 'Q3 results'],
+          ['OPEC+', 'Production meeting'],
+          ['Data', 'EIA weekly inventories'],
+        ] as [string, string][],
+      },
+    },
+  },
+
+  crypto: {
+    loading: 'Loading market data…',
+    directionalCall: (sym: string) => `${sym} · Directional Call`,
+    confidence: 'Confidence',
+    rangePosition: '24h range position',
+    ofRange: (n: string) => `${n}% of range`,
+    marketMetrics: 'Market Metrics',
+    volume24h: '24h volume',
+    volumeNote: 'Quote volume, Binance spot',
+    range24h: '24h range',
+    elevatedVolatility: 'Elevated volatility',
+    contained: 'Contained',
+    riskGauge: 'Risk gauge',
+    crossAssetAppetite: 'Cross-asset appetite',
+    driverScore: 'Driver score',
+    netMacroSupport: 'Net macro support',
+    macroDrivers: 'Macro Drivers',
+    macroDriversNote: 'What is actually moving this market',
+    drivers: {
+      fedPolicy: {
+        name: 'Fed policy cycle',
+        supportive: 'Easing bias — supportive',
+        headwind: 'Restrictive — headwind',
+        why: 'Crypto is a duration asset. Lower expected real rates raise the present value of a zero-cashflow asset, which is why BTC tracks rate expectations more closely than it tracks inflation.',
+      },
+      riskAppetite: {
+        name: 'Risk appetite',
+        riskOn: 'Risk-on',
+        riskOff: 'Risk-off',
+        balanced: 'Balanced',
+        why: (risk: number) =>
+          `The risk gauge reads ${risk}/100. Crypto behaves as a high-beta expression of the same appetite driving equities — correlation to Nasdaq tightens sharply during stress.`,
+      },
+      dollar: {
+        name: 'Dollar direction',
+        headwind: 'Strengthening — headwind',
+        tailwind: 'Softening — tailwind',
+        why: (dxy: string) =>
+          `DXY is ${dxy}% today. A firmer dollar drains liquidity from every risk asset priced in it, and crypto sits at the far end of that sensitivity curve.`,
+      },
+      equityCorrelation: {
+        name: 'Equity correlation',
+        together: 'Moving together',
+        diverging: 'Diverging',
+        whyAligned: (nq: string, sym: string, chg: string) =>
+          `Nasdaq is ${nq}% and ${sym} is ${chg}%. Aligned moves suggest a shared macro driver rather than a crypto-specific catalyst.`,
+        whyDiverging: (nq: string, sym: string, chg: string) =>
+          `Nasdaq is ${nq}% and ${sym} is ${chg}%. Divergence points to something crypto-native driving price — flows, an unlock, or protocol news.`,
+      },
+      futuresPositioning: {
+        name: 'Futures positioning',
+        noCftc: 'No CFTC data',
+        fundsLong: 'Funds net long',
+        fundsShort: 'Funds net short',
+        whyNoData: 'CME Bitcoin futures positioning was not returned by the CFTC feed for this period.',
+        why: (dir: string, n: string) =>
+          `Large speculators are net ${dir} ${n} contracts on CME. Crowded positioning cuts both ways — it fuels trends until it unwinds.`,
+        long: 'long',
+        short: 'short',
+      },
+    },
+    netRead: 'Net read —',
+    netReadAligned: 'Macro conditions are aligned behind this market. Pullbacks are more likely to be bought than to extend.',
+    netReadAgainst: 'Macro conditions are working against this market. Rallies are more likely to be sold than to extend.',
+    netReadMixed: 'Macro drivers are mixed and partially cancel each other out. Position sizing matters more than direction here.',
+  },
+};
+
+export const ar: typeof en = {
+  shell: {
+    utc: 'ت.و.غ',
+    alerts: 'التنبيهات',
+    signOut: 'تسجيل الخروج',
+    menu: 'القائمة',
+    fiper: 'فايبر',
+    intelligence: 'إنتليجنس',
+    backend: 'الخادم الخلفي',
+  },
+
+  home: {
+    riskEnvironment: 'بيئة المخاطرة',
+    model: 'نموذج',
+    nextReleases: 'الإصدارات القادمة',
+    fullCalendar: 'التقويم الكامل',
+    nothingLeftToday: 'لا شيء متبقٍ اليوم.',
+    dailyBias: 'التحيز اليومي',
+    updated: (time: string) => `آخر تحديث ${time}`,
+    swing: 'متأرجح',
+    day: 'يومي',
+    liveFeed: 'التغذية المباشرة',
+  },
+
+  headlines: {
+    all: 'الكل',
+    forex: 'فوركس',
+    indices: 'المؤشرات',
+    commodities: 'السلع',
+    crypto: 'العملات الرقمية',
+    empty: 'لا توجد أخبار في هذه الفئة حاليًا.',
+    whyItMatters: 'لماذا يهم —',
+  },
+
+  calendar: {
+    dows: ['الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة'],
+    eventsCount: (n: number, hi: number) => (hi ? `${n} حدث · ${hi} مرتفع الأهمية` : `${n} حدث`),
+    dayTitle: (dow: string, n: number) => `${dow} — ${n} حدث`,
+    consensusNote: 'الإجماع مقابل نطاق توقعات البنوك',
+    noForecast: 'لا يوجد توقع رقمي',
+    released: 'صدر',
+    upcoming: 'قادم',
+    prev: 'سابق',
+    cons: 'إجماع',
+    actual: 'فعلي',
+    noEvents: 'لا توجد أحداث مجدولة.',
+    dash: '—',
+  },
+
+  bias: {
+    noData: 'لا توجد بيانات لهذه الأداة.',
+    todaySuffix: (name: string) => `${name} · اليوم`,
+    confidence: 'مستوى الثقة',
+    swingLine: (v: string) => `متأرجح · ${v}`,
+    dayLine: (v: string) => `يومي · ${v}`,
+    riskGaugeLine: (v: number) => `مقياس المخاطرة ${v}`,
+    keyLevels: 'المستويات الرئيسية',
+    levels: {
+      resistance2: 'مقاومة 2',
+      resistance1: 'مقاومة 1',
+      current: 'السعر الحالي',
+      support1: 'دعم 1',
+      support2: 'دعم 2',
+    },
+    whatsDrivingIt: 'ما الذي يحرك هذه الأداة',
+    derivedNote: 'مستمد من الأسعار المباشرة ومقياس المخاطرة',
+    reasons: {
+      upMomentum: (sym: string, chg: string) =>
+        `<b style="color:var(--text)">${sym}</b> مرتفع ${chg}% خلال الجلسة، ما يبقي الزخم قصير المدى إيجابيًا.`,
+      downMomentum: (sym: string, chg: string) =>
+        `<b style="color:var(--text)">${sym}</b> منخفض ${chg}% خلال الجلسة، ما يجعل الزخم اليومي في غير صالح المراكز الشرائية.`,
+      riskHigh: (risk: number) =>
+        `تقرأ شهية المخاطرة عند <b style="color:var(--text)">${risk}/100</b> — الأسهم والعملات الرقمية في الصدارة، وهو ما يرجّح التعرض الدوري على الملاذات الآمنة.`,
+      riskLow: (risk: number) =>
+        `تقرأ شهية المخاطرة عند <b style="color:var(--text)">${risk}/100</b> — التدفقات الدفاعية مسيطرة، وهو ما يرجّح الذهب والدولار على الأسهم.`,
+      riskBalanced: (risk: number) =>
+        `شهية المخاطرة متوازنة عند <b style="color:var(--text)">${risk}/100</b>، لذا لا يُعد الاقتصاد الكلي المحرك المهيمن حاليًا.`,
+      dollarFirmer: (dxy: string) => `مؤشر الدولار أكثر قوة (${dxy}%)، وهو ضغط سلبي على الأصول المقومة بالدولار.`,
+      dollarSofter: (dxy: string) => `مؤشر الدولار أكثر ضعفًا (${dxy}%)، وهو ما يشكل دعمًا بشكل عام هنا.`,
+      highImpactNews: (n: number, plural: string) =>
+        `<b style="color:var(--text)">${n}</b> ${plural} عالية التأثير في التغذية الإخبارية تشير مباشرة إلى هذا السوق.`,
+      headline: 'خبر',
+      headlines: 'أخبار',
+      upcomingEvent: (name: string, ccy: string, time: string) =>
+        `<b style="color:var(--text)">${name}</b> (${ccy}) لا يزال قادمًا عند الساعة ${time} — ضع ذلك في الحسبان عند تحديد حجم المراكز.`,
+    },
+  },
+
+  global: {
+    heatMap: 'خريطة الأداء الحرارية',
+    change24h: 'التغير خلال 24 ساعة',
+    crypto: 'عملات رقمية',
+  },
+
+  flows: {
+    currencyStrength: 'قوة العملات',
+    deviationNote: (date: string) => `الانحراف عن سلة المرجع لآخر 30 يومًا. الأسعار: ${date}`,
+    assetClassFlows: 'تدفقات فئات الأصول',
+    net5d: 'صافي 5 أيام',
+    classes: {
+      'US Equities': 'الأسهم الأمريكية',
+      'EU Equities': 'الأسهم الأوروبية',
+      'Precious Metals': 'المعادن الثمينة',
+      Energy: 'الطاقة',
+      Crypto: 'العملات الرقمية',
+      Dollar: 'الدولار',
+    },
+    positioningDivergence: 'تباين المراكز',
+    institutionalVsRetail: 'المؤسسات مقابل الأفراد',
+    largeSpecs: 'كبار المضاربين (الصناديق)',
+    commercials: 'التجاريون (المتحوطون)',
+    netLong: 'صافي شراء',
+    netShort: 'صافي بيع',
+    loading: 'جارٍ تحميل بيانات المراكز…',
+  },
+
+  cot: {
+    loading: 'جارٍ تحميل بيانات لجنة تداول العقود الآجلة…',
+    largeSpecNetPosition: 'صافي مركز كبار المضاربين',
+    wow: 'أسبوعيًا',
+    fundsNetLong: () => `الصناديق في صافي مركز شرائي — المراكز تدعم استمرار الصعود.`,
+    fundsNetShort: () => `الصناديق في صافي مركز بيعي — المراكز تميل ضد الارتدادات الصعودية.`,
+    longShortSplit: 'توزيع الشراء / البيع',
+    openInterest: (n: string) => `الفائدة المفتوحة ${n}`,
+    largeSpecsLabel: 'كبار المضاربين',
+    longPct: (n: string) => `${n}% شراء`,
+    shortPct: (n: string) => `${n}% بيع`,
+    commercialsLabel: 'التجاريون (المتحوطون)',
+    crowdedLong: 'مراكز الشراء المضاربة مزدحمة. تاريخيًا تُعد هذه قراءة متطرفة — يرتفع خطر الضغط العكسي.',
+    crowdedShort: 'مراكز البيع المضاربة مزدحمة. تاريخيًا تُعد هذه قراءة متطرفة — يرتفع خطر الضغط العكسي.',
+    normalRange: 'المراكز ضمن نطاقها الطبيعي، لذا فهي ليست إشارة مخالفة للاتجاه حاليًا.',
+    weeklyHistory: 'السجل الأسبوعي',
+    sourceNote: 'المصدر: تقرير التزامات المتداولين — لجنة تداول العقود الآجلة',
+    table: {
+      reportDate: 'تاريخ التقرير',
+      specLong: 'شراء مضاربي',
+      specShort: 'بيع مضاربي',
+      specNet: 'صافي مضاربي',
+      commLong: 'شراء تجاري',
+      commShort: 'بيع تجاري',
+      openInterest: 'الفائدة المفتوحة',
+    },
+  },
+
+  forecasts: {
+    driverNames: {
+      'Fed policy cycle': 'دورة سياسة الفيدرالي',
+      'Risk appetite': 'شهية المخاطرة',
+      'Dollar direction': 'اتجاه الدولار',
+      Positioning: 'المراكز',
+    },
+    driverValues: {
+      Supportive: 'داعم',
+      Restrictive: 'تشديدي',
+      'Risk-on': 'إقبال على المخاطرة',
+      'Risk-off': 'تجنب المخاطرة',
+      Balanced: 'متوازن',
+      Strengthening: 'يتقوى',
+      Softening: 'يضعف',
+      'No COT': 'لا توجد بيانات مراكز',
+      'Net long': 'صافي شراء',
+      'Net short': 'صافي بيع',
+    },
+    weekLine: (name: string) => `${name} · أسبوع واحد`,
+    cryptoFallback: 'عملات رقمية',
+    confidence: 'مستوى الثقة',
+    conservative: 'متحفظ',
+    base: 'أساسي',
+    stretch: 'متفائل',
+  },
+
+  candles: {
+    candleAnalysis: 'تحليل الشموع',
+    binanceLive: 'بينانس مباشر',
+    model: 'نموذج',
+    patternsDetected: 'الأنماط المكتشفة',
+    last30: 'آخر 30 شمعة',
+    noPatterns: 'لا توجد أنماط كلاسيكية في آخر 30 شمعة. السعر يتجه دون إشارات انعكاس واضحة.',
+    multiTimeframeTrend: 'الاتجاه متعدد الأطر الزمنية',
+    trend: { Uptrend: 'اتجاه صاعد', Downtrend: 'اتجاه هابط', Ranging: 'تذبذب' },
+    maSpread: (n: string) => `فارق المتوسطين 10/20 ${n}%`,
+    whyFormed: 'لماذا تشكلت هذه الشمعة',
+    up: 'صعود',
+    down: 'هبوط',
+    rangePct: (n: string) => `النطاق ${n}%`,
+    volumeX: (n: string) => `الحجم ${n}× المتوسط`,
+    closedSentence: (tf: string, dir: string, pct: string, range: string) =>
+      `أغلقت شمعة ${tf} الحالية ${dir} بنسبة ${pct}% بنطاق ${range}%.`,
+    wideRange: 'هذا نطاق واسع — كانت المشاركة مرتفعة.',
+    containedRange: 'النطاق محدود، لذا فهذه حركة منظمة وليست اندفاعية.',
+    volumeSentence: (x: string) => `بلغ الحجم ${x}× متوسط الفترات العشرين الأخيرة.`,
+    volumeConfirms: 'الحجم المرتفع خلف شمعة اتجاهية يميل إلى تأكيد الحركة بدلًا من إضعافها.',
+    volumeUnremarkable: 'الحجم غير لافت، ما يضعف أي استنتاج يُبنى على هذه الشمعة وحدها.',
+    riskSentence: (risk: number, withOrAgainst: string) =>
+      `تقف شهية المخاطرة الأوسع عند ${risk}/100. العملات الرقمية تعبير عالي الحساسية عن المخاطرة، لذا فهذه الشمعة ${withOrAgainst} التيار الاقتصادي الكلي.`,
+    movingWith: 'تتحرك مع',
+    fighting: 'تقاوم',
+    concurrentNews: (headline: string) => `خبر متزامن عالي التأثير: ${headline}…`,
+    newsEvents: 'أحداث الأخبار',
+    connectNewsFeed: 'اربط مصدر أخبار لعرض الأحداث — أضف MARKETAUX_KEY أو FINNHUB_KEY إلى backend/.env',
+    closePopup: 'إغلاق',
+  },
+
+  backtest: {
+    condOptions: { 'Beat forecast': 'تجاوز التوقعات', 'Missed forecast': 'دون التوقعات', 'Any result': 'أي نتيجة' },
+    winOptions: { '30 minutes': '30 دقيقة', '4 hours': '4 ساعات', '1 day': 'يوم واحد', '5 days': '5 أيام' },
+    title: 'الاختبار الأساسي التاريخي',
+    subtitle: 'كيف تفاعلت أداة معينة مع حدث اقتصادي كلي تاريخيًا',
+    asset: 'الأداة',
+    event: 'الحدث',
+    outcome: 'النتيجة',
+    measuredOver: 'مقاس خلال',
+    runBacktest: 'تشغيل الاختبار التاريخي',
+    result: 'النتيجة',
+    resultLine: (asset: string, event: string, filter: string, years: number) =>
+      `${asset} بعد ${event} · ${filter} · ${years} سنة`,
+    filterAll: 'جميع الإصدارات',
+    filterBeats: 'التجاوزات فقط',
+    filterMisses: 'الإخفاقات فقط',
+    instances: 'عدد الحالات',
+    avgMove: 'متوسط الحركة',
+    hitRate: 'معدل الإصابة الاتجاهي',
+    stdDev: 'الانحراف المعياري',
+    best: 'الأفضل:',
+    worst: 'الأسوأ:',
+    measuredOverColon: 'مقاس خلال:',
+    unit: { min: 'دقيقة', hours: 'ساعات', days: 'أيام' },
+    // Arabic numeral-noun agreement handled directly from n (this warning
+    // only ever fires for n < 8, so the 1/2/3-10 forms cover every case
+    // that can occur) — the unused `plural` param is kept only so this
+    // matches en's call signature; see the i18n summary for why full
+    // singular/dual/plural agreement isn't attempted everywhere.
+    reliabilityWarning: (n: number, _plural: string) => {
+      const noun = n === 1 ? 'حالة تاريخية واحدة' : n === 2 ? 'حالتان تاريخيتان' : `${n} حالات تاريخية`;
+      return `تطابقت ${noun} فقط. دون 8 مشاهدات، يظل المتوسط ومعدل الإصابة استرشاديين وليسا موثوقين إحصائيًا — يمكن لقيمة شاذة واحدة أن تقلب الإشارة. وسّع فلتر النتيجة أو اختر حدثًا أكثر تكرارًا.`;
+    },
+    instancePlural: { one: '', many: '' },
+    reliableSummary: (n: number, asset: string, avg: string, winRate: string) =>
+      `عبر ${n} إصدارًا، تحركت ${asset} بمتوسط ${avg}% في نفس الاتجاه بنسبة ${winRate}% من الوقت.`,
+    consistentReaction: 'هذا رد فعل ثابت بشكل معقول — العلاقة ما زالت قائمة.',
+    mildEdge: 'الميزة ضعيفة. الاتجاه أقرب إلى الحظ منه إلى الموثوقية.',
+    noEdge: 'لا توجد ميزة اتجاهية يمكن الاعتماد عليها هنا؛ التشتت هو السائد.',
+    everyInstance: 'كل الحالات',
+    model: 'نموذج',
+    table: {
+      releaseDate: 'تاريخ الإصدار',
+      result: 'النتيجة',
+      surprise: 'المفاجأة',
+      reaction: 'رد الفعل',
+      move: 'الحركة',
+    },
+    beat: 'تجاوز',
+    miss: 'إخفاق',
+    events: {
+      'US Core CPI m/m': 'مؤشر أسعار المستهلك الأساسي الأمريكي الشهري',
+      'US Non-Farm Payrolls': 'التوظيف غير الزراعي الأمريكي',
+      'FOMC Rate Decision': 'قرار الفائدة للجنة السوق الفيدرالية المفتوحة',
+      'US ISM Manufacturing': 'مؤشر ISM للتصنيع الأمريكي',
+      'ECB Rate Decision': 'قرار سعر الفائدة للبنك المركزي الأوروبي',
+      'BoE Rate Decision': 'قرار سعر الفائدة لبنك إنجلترا',
+      'BoJ Policy Statement': 'بيان السياسة النقدية لبنك اليابان',
+      'US GDP q/q Advance': 'الناتج المحلي الإجمالي الأمريكي الفصلي الأولي',
+      'US Core PCE m/m': 'مؤشر نفقات الاستهلاك الشخصي الأساسي الأمريكي الشهري',
+      'EIA Crude Inventories': 'مخزونات النفط الخام — إدارة معلومات الطاقة',
+    },
+  },
+
+  stocks: {
+    searchPlaceholder: 'ابحث عن رمز — NVDA, AAPL, JPM, XOM…',
+    search: 'بحث',
+    noCoverage: (ticker: string) => `لا تغطية للرمز "${ticker}"`,
+    coverageNote: 'التغطية مقتصرة على الرموز أعلاه. اربط واجهة بيانات أساسية لتوسيعها.',
+    model: 'نموذج',
+    fund: {
+      marketCap: 'القيمة السوقية',
+      pe: 'مكرر الربحية',
+      eps: 'ربحية السهم (12 شهرًا)',
+      dividend: 'توزيعات الأرباح',
+      revenue: 'الإيرادات (12 شهرًا)',
+      revGrowth: 'نمو الإيرادات',
+      beta: 'بيتا',
+    },
+    macroSensitivity: 'الحساسية للاقتصاد الكلي',
+    correlationNote: 'الارتباط بكل عامل',
+    sensitivitySentence: (stock: string, factor: string) =>
+      `الإيجابي يعني أن السهم يرتفع عندما يرتفع ذلك العامل. ${stock} الأكثر حساسية لـ${factor}.`,
+    upcomingCatalysts: 'المحفزات القادمة',
+    bullCase: 'سيناريو الصعود',
+    bearCase: 'سيناريو الهبوط',
+    sectors: {
+      Semiconductors: 'أشباه الموصلات',
+      'Consumer Electronics': 'الإلكترونيات الاستهلاكية',
+      Banking: 'البنوك',
+      Energy: 'الطاقة',
+    },
+    sensFactors: {
+      'Fed rate path': 'مسار فائدة الفيدرالي',
+      'Dollar strength': 'قوة الدولار',
+      'Oil price': 'سعر النفط',
+      'Risk appetite': 'شهية المخاطرة',
+      '10Y yield': 'عائد سندات 10 سنوات',
+    },
+    stockContent: {
+      NVDA: {
+        bull: [
+          'لا تُظهر النفقات الرأسمالية لمراكز البيانات من عمالقة الحوسبة السحابية أي علامات تباطؤ خلال العام المقبل',
+          'الميزة التنافسية البرمجية عبر منصة CUDA تُبقي تكلفة التحول إلى منافسين مرتفعة على العملاء الحاليين',
+          'تجاوزت توقعات الشركة إجماع المحللين لثمانية أرباع متتالية',
+        ],
+        bear: [
+          'يعكس التقييم الحالي أداءً شبه مثالي، ما يترك هامشًا ضئيلًا لأي تعثر',
+          'تركز العملاء: عدد قليل من المشترين يحرك معظم الإيرادات',
+          'تطوير هؤلاء العملاء أنفسهم لرقائق مخصصة يمثل تهديدًا هيكليًا على المدى الطويل',
+        ],
+        cat: [
+          ['الأرباح', 'نتائج الربع الثالث بعد إغلاق التداول'],
+          ['الفيدرالي', 'قرار اللجنة الفيدرالية للسوق المفتوحة — حساس لأسعار الفائدة'],
+          ['مؤتمر', 'الكلمة الرئيسية لمؤتمر GTC'],
+        ] as [string, string][],
+      },
+      AAPL: {
+        bull: [
+          'إيرادات الخدمات أصبحت الآن مرتفعة الهامش ومتكررة، ما يخفف من تقلبات دورات الأجهزة',
+          'قاعدة مستخدمين تتجاوز 2 مليار جهاز تمنح قدرة تسعيرية مستدامة',
+          'برنامج إعادة شراء الأسهم لا يزال الأكبر في السوق',
+        ],
+        bear: [
+          'التعرض للسوق الصينية يمثل خطرًا على الطلب وخطر تركز في سلسلة التوريد في آن واحد',
+          'أصبحت دورات ترقية الأجهزة أطول بشكل ملموس',
+          'ضغوط تنظيمية على اقتصاديات متجر التطبيقات في الاتحاد الأوروبي والولايات المتحدة',
+        ],
+        cat: [
+          ['الأرباح', 'نتائج الربع الرابع'],
+          ['منتج', 'فعالية الأجهزة الخريفية'],
+          ['قانوني', 'قرار الامتثال لقانون الأسواق الرقمية الأوروبي'],
+        ] as [string, string][],
+      },
+      JPM: {
+        bull: [
+          'صافي دخل الفوائد يستفيد بشكل مباشر من بقاء أسعار الفائدة مرتفعة لفترة أطول',
+          'الميزانية العمومية القوية تجذب الودائع خلال أي فترة اضطراب',
+          'خط عمولات الخدمات المصرفية الاستثمارية يعاود التشكل مع عودة نشاط الإصدارات',
+        ],
+        bear: [
+          'لا يزال تطبيع جودة الائتمان في بطاقات الائتمان والعقارات التجارية جاريًا',
+          'خفض أسعار الفائدة سيضغط على هامش الفائدة الصافي من هذه المستويات',
+          'متطلبات رأس المال بموجب اتفاقية بازل النهائية لا تزال دون حسم',
+        ],
+        cat: [
+          ['الأرباح', 'نتائج الربع الثالث قبل افتتاح التداول'],
+          ['الفيدرالي', 'اجتماع اللجنة الفيدرالية للسوق المفتوحة — تأثير مباشر على هامش الفائدة الصافي'],
+          ['تنظيمي', 'نتائج اختبارات الضغط'],
+        ] as [string, string][],
+      },
+      XOM: {
+        bull: [
+          'أصول غيانا وحوض بيرميان تقع عند الطرف المنخفض من منحنى التكلفة العالمي',
+          'التدفق النقدي الحر يدعم نمو توزيعات الأرباح وإعادة شراء الأسهم حتى عند أسعار نفط معتدلة',
+          'هوامش التكرير صمدت بشكل أفضل مما توقعه السوق',
+        ],
+        bear: [
+          'الأرباح في نهاية المطاف رهان مُعزز على اتجاه سعر النفط الخام',
+          'الانضباط في الإنفاق الرأسمالي يتعرض لضغط مع ارتفاع أهداف الإنتاج',
+          'مخاطر سياسات التحول في الطاقة تتراكم على مدى أفق زمني طويل',
+        ],
+        cat: [
+          ['الأرباح', 'نتائج الربع الثالث'],
+          ['أوبك+', 'اجتماع الإنتاج'],
+          ['بيانات', 'مخزونات النفط الأسبوعية — إدارة معلومات الطاقة'],
+        ] as [string, string][],
+      },
+    },
+  },
+
+  crypto: {
+    loading: 'جارٍ تحميل بيانات السوق…',
+    directionalCall: (sym: string) => `${sym} · التوقع الاتجاهي`,
+    confidence: 'مستوى الثقة',
+    rangePosition: 'موقع نطاق 24 ساعة',
+    ofRange: (n: string) => `${n}% من النطاق`,
+    marketMetrics: 'مقاييس السوق',
+    volume24h: 'حجم التداول 24 ساعة',
+    volumeNote: 'حجم التسعير، بينانس الفوري',
+    range24h: 'نطاق 24 ساعة',
+    elevatedVolatility: 'تقلب مرتفع',
+    contained: 'محدود',
+    riskGauge: 'مقياس المخاطرة',
+    crossAssetAppetite: 'الشهية عبر فئات الأصول',
+    driverScore: 'درجة المحركات',
+    netMacroSupport: 'صافي الدعم الاقتصادي الكلي',
+    macroDrivers: 'محركات الاقتصاد الكلي',
+    macroDriversNote: 'ما الذي يحرك هذا السوق فعليًا',
+    drivers: {
+      fedPolicy: {
+        name: 'دورة سياسة الفيدرالي',
+        supportive: 'ميل تيسيري — داعم',
+        headwind: 'تشديدي — ضغط سلبي',
+        why: 'العملات الرقمية أصل حساس للمدة الزمنية. انخفاض توقعات العوائد الحقيقية يرفع القيمة الحالية للأصل عديم التدفق النقدي، وهو ما يفسر تتبع البيتكوين لتوقعات الفائدة أكثر من تتبعه للتضخم.',
+      },
+      riskAppetite: {
+        name: 'شهية المخاطرة',
+        riskOn: 'إقبال على المخاطرة',
+        riskOff: 'تجنب المخاطرة',
+        balanced: 'متوازن',
+        why: (risk: number) =>
+          `يقرأ مقياس المخاطرة ${risk}/100. تتصرف العملات الرقمية كتعبير عالي الحساسية عن نفس الشهية التي تحرك الأسهم — يتشدد الارتباط بمؤشر ناسداك بشكل حاد خلال فترات التوتر.`,
+      },
+      dollar: {
+        name: 'اتجاه الدولار',
+        headwind: 'يتقوى — ضغط سلبي',
+        tailwind: 'يضعف — دعم',
+        why: (dxy: string) =>
+          `مؤشر الدولار عند ${dxy}% اليوم. الدولار الأقوى يستنزف السيولة من كل أصل مخاطرة مقوم به، والعملات الرقمية تقع عند الطرف الأبعد من منحنى تلك الحساسية.`,
+      },
+      equityCorrelation: {
+        name: 'الارتباط بالأسهم',
+        together: 'تتحرك معًا',
+        diverging: 'تتباين',
+        whyAligned: (nq: string, sym: string, chg: string) =>
+          `ناسداك عند ${nq}% و${sym} عند ${chg}%. التحرك المتوافق يشير إلى محرك اقتصادي كلي مشترك بدلًا من محفز خاص بالعملات الرقمية.`,
+        whyDiverging: (nq: string, sym: string, chg: string) =>
+          `ناسداك عند ${nq}% و${sym} عند ${chg}%. التباين يشير إلى عامل خاص بالعملات الرقمية يحرك السعر — تدفقات، أو إلغاء قفل، أو أخبار بروتوكول.`,
+      },
+      futuresPositioning: {
+        name: 'مراكز العقود الآجلة',
+        noCftc: 'لا توجد بيانات من لجنة العقود الآجلة',
+        fundsLong: 'الصناديق في صافي شراء',
+        fundsShort: 'الصناديق في صافي بيع',
+        whyNoData: 'لم ترد بيانات مراكز عقود بيتكوين الآجلة في بورصة CME من تغذية لجنة تداول العقود الآجلة لهذه الفترة.',
+        why: (dir: string, n: string) =>
+          `كبار المضاربين في صافي ${dir} بمقدار ${n} عقد في بورصة CME. المراكز المزدحمة سلاح ذو حدين — تغذي الاتجاهات إلى أن تنعكس.`,
+        long: 'شراء',
+        short: 'بيع',
+      },
+    },
+    netRead: 'القراءة الصافية —',
+    netReadAligned: 'الظروف الاقتصادية الكلية متوافقة مع دعم هذا السوق. التراجعات أقرب إلى فرص شراء منها إلى امتداد الهبوط.',
+    netReadAgainst: 'الظروف الاقتصادية الكلية تعمل ضد هذا السوق. الارتدادات الصعودية أقرب إلى فرص بيع منها إلى استمرار الصعود.',
+    netReadMixed: 'محركات الاقتصاد الكلي متضاربة ويلغي بعضها بعضًا جزئيًا. حجم المركز هنا أهم من الاتجاه.',
+  },
+};
