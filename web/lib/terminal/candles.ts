@@ -29,7 +29,21 @@ export interface Kline {
 }
 
 export const CNDL_ASSETS: Record<string, string> = { BTCUSD: 'BTCUSDT', ETHUSD: 'ETHUSDT', SOLUSD: 'SOLUSDT', XRPUSD: 'XRPUSDT' };
-export const TFS: [string, string][] = [['15m', '15m'], ['1h', '1H'], ['4h', '4H'], ['1d', '1D']];
+export const TFS: [string, string][] = [['1m', '1m'], ['5m', '5m'], ['15m', '15m'], ['1h', '1H'], ['4h', '4H'], ['1d', '1D']];
+
+// Every asset the chart selector on CandlesScreen can show, grouped for
+// display. Only the 'crypto' group's assets are keys of CNDL_ASSETS
+// above (Binance-backed, so real pattern detection/multi-timeframe
+// trend/"why formed" can run on them) — the rest drive the TradingView
+// chart only (via tvSymbol() in tradingview.ts, not duplicated here).
+// CandlesScreen checks CNDL_ASSETS membership to decide whether to
+// attempt the Binance-kline fetch for a given selection.
+export const CHART_ASSET_GROUPS: readonly { key: 'crypto' | 'commodities' | 'indices' | 'forex'; assets: readonly string[] }[] = [
+  { key: 'crypto', assets: ['BTCUSD', 'ETHUSD', 'SOLUSD', 'XRPUSD'] },
+  { key: 'commodities', assets: ['XAUUSD', 'USOIL'] },
+  { key: 'indices', assets: ['NQUSD', 'ESUSD'] },
+  { key: 'forex', assets: ['DXY', 'EURUSD', 'GBPUSD', 'USDJPY'] },
+] as const;
 
 // api.klines()'s underlying fetch() has no timeout of its own — a stalled
 // connection (backend under load, a slow upstream, a dropped response)

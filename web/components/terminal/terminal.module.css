@@ -372,11 +372,15 @@
 .nt-popup-sum { font-size: .68rem; color: var(--muted); line-height: 1.4; margin-bottom: 8px; }
 .nt-popup-time { font-size: .6rem; color: var(--dim); margin-top: 8px; }
 .cndl-tools { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cndl-asset-groups { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.cndl-group { display: flex; align-items: center; gap: 6px; }
+.cndl-group-label { font-size: .58rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.cndl-group-sep { width: 1px; height: 18px; background: var(--line2); margin-inline-end: 6px; }
 .tf-btn { font-family: var(--mono); font-size: .7rem; font-weight: 600; padding: 5px 11px; border-radius: 6px;
   border: 1px solid var(--line); color: var(--muted); transition: .15s; }
 .tf-btn:hover { border-color: var(--line2); color: var(--text); }
 .tf-btn.on { background: linear-gradient(135deg,var(--red-hi),var(--red-deep)); color: #fff; border-color: transparent; }
-.mtf { display: grid; grid-template-columns: repeat(4,1fr); gap: 8px; }
+.mtf { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; }
 .mtf-cell { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 9px; padding: 11px; }
 .mtf-tf { font-family: var(--mono); font-size: .66rem; font-weight: 700; color: var(--dim); }
 .mtf-dir { font-size: .86rem; font-weight: 800; margin-top: 5px; }

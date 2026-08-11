@@ -25,7 +25,9 @@ export const TV_SYMBOL_MAP: Record<string, string> = {
   // restricted to D/W/M intervals only, no 1H). CAPITALCOM:* resolves
   // reliably across all intervals including 1H. Commodity/FX
   // (XAUUSD/USOIL/DXY) stay on TVC — those were confirmed clean
-  // throughout and are left untouched.
+  // throughout and are left untouched. (CAPITALCOM:USD was tried as a
+  // DXY replacement and rejected — verified as a hard "This symbol
+  // doesn't exist" in-app, not the vendor's real dollar-index ticker.)
   NQUSD: 'CAPITALCOM:NAS100',
   ESUSD: 'CAPITALCOM:US500',
   YMUSD: 'CAPITALCOM:US30',
@@ -33,6 +35,10 @@ export const TV_SYMBOL_MAP: Record<string, string> = {
   USOIL: 'TVC:USOIL',
   DXY: 'TVC:DXY',
   DAX: 'CAPITALCOM:GER40',
+  // Forex majors — FX vendor, per spec.
+  EURUSD: 'FX:EURUSD',
+  GBPUSD: 'FX:GBPUSD',
+  USDJPY: 'FX:USDJPY',
 };
 
 export function tvSymbol(asset: string): string {
@@ -40,7 +46,7 @@ export function tvSymbol(asset: string): string {
 }
 
 // App timeframe code -> TradingView interval code.
-const TF_MAP: Record<string, string> = { '15m': '15', '1h': '60', '4h': '240', '1d': 'D' };
+const TF_MAP: Record<string, string> = { '1m': '1', '5m': '5', '15m': '15', '1h': '60', '4h': '240', '1d': 'D' };
 
 export function tvInterval(tf: string): string {
   return TF_MAP[tf] || '60';

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from '../terminal.module.css';
 import { useMarketData } from '@/lib/terminal/MarketDataProvider';
-import { CNDL_ASSETS, TFS, fetchKlines, seedKlines, detectPattern, type Kline } from '@/lib/terminal/candles';
+import { CNDL_ASSETS, CHART_ASSET_GROUPS, TFS, fetchKlines, seedKlines, detectPattern, type Kline } from '@/lib/terminal/candles';
 import { num } from '@/lib/terminal/format';
 import { tvSymbol, tvInterval } from '@/lib/terminal/tradingview';
 import { TIMEFRAME_NEWS_HOURS } from '@/lib/terminal/newsTimeline';
@@ -24,12 +24,21 @@ import { useLanguage } from '@/lib/i18n/LanguageContext';
 export function CandlesScreen({ active }: { active: boolean }) {
   const S = useMarketData();
   const { t, lang } = useLanguage();
-  const [cndlSel, setCndlSel] = useState<keyof typeof CNDL_ASSETS>('BTCUSD');
+  // Widened from keyof typeof CNDL_ASSETS: the chart selector now spans
+  // all of CHART_ASSET_GROUPS (crypto + commodities/indices/forex), not
+  // just the 4 Binance-backed crypto assets CNDL_ASSETS covers.
+  const [cndlSel, setCndlSel] = useState<string>('BTCUSD');
   const [cndlTF, setCndlTF] = useState('1h');
   const [cndlData, setCndlData] = useState<Kline[]>([]);
   const [mtfData, setMtfData] = useState<Record<string, Kline[]>>({});
   const [srcMode, setSrcMode] = useState<SrcMode>('wait');
   const lastLoadedKey = useRef<string | null>(null);
+
+  // Only crypto assets are keys of CNDL_ASSETS (Binance-backed) — real
+  // pattern detection/multi-timeframe trend/"why formed" only run for
+  // those. The TradingView chart itself is unaffected either way, since
+  // it's driven by tvSymbol(cndlSel), not CNDL_ASSETS.
+  const isCrypto = Object.prototype.hasOwnProperty.call(CNDL_ASSETS, cndlSel);
 
   useEffect(() => {
     if (!active) return;
@@ -37,16 +46,26 @@ export function CandlesScreen({ active }: { active: boolean }) {
     if (lastLoadedKey.current === key) return;
     lastLoadedKey.current = key;
 
-    let cancelled = false;
     const sym = CNDL_ASSETS[cndlSel];
+    if (!sym) {
+      // Non-crypto asset selected — nothing honest to fetch (see
+      // isCrypto comment above). Reset rather than carry over the
+      // previous asset's data.
+      setCndlData([]);
+      setMtfData({});
+      setSrcMode('wait');
+      return;
+    }
 
-    // The main chart-timeframe fetch and all 4 multi-timeframe fetches
+    let cancelled = false;
+
+    // The main chart-timeframe fetch and all 6 multi-timeframe fetches
     // used to run sequentially (await the main one, *then* start the
-    // other 4), which doubles the time the Multi-Timeframe Trend panel
+    // rest), which doubles the time the Multi-Timeframe Trend panel
     // sits empty for no reason — they don't depend on each other. Firing
-    // all 5 together, and using allSettled instead of all, means a
+    // them all together, and using allSettled instead of all, means a
     // single rejected/timed-out request (see fetchKlines' own timeout
-    // guard in candles.ts) can't prevent the other 4 from populating —
+    // guard in candles.ts) can't prevent the others from populating —
     // each slot falls back to seedKlines() independently either way.
     Promise.allSettled([fetchKlines(sym, cndlTF, 80), ...TFS.map(([tf]) => fetchKlines(sym, tf, 50))]).then((results) => {
       if (cancelled) return;
@@ -110,14 +129,26 @@ export function CandlesScreen({ active }: { active: boolean }) {
       <div className={styles.card} style={{ marginBottom: 14 }}>
         <div className={styles['card-head']}>
           <span className={styles['card-title']}>{t.terminal.candles.candleAnalysis}</span>
-          <SourceBadge mode={srcMode} label={srcMode === 'live' ? 'Binance Live' : 'Model'} className={styles.mono} />
+          {/* Only meaningful for crypto — see isCrypto comment above.
+              For a non-crypto selection nothing was fetched, so no
+              live/stale/demo claim would be honest here; omit rather
+              than badge something that didn't happen. */}
+          {isCrypto && <SourceBadge mode={srcMode} label={srcMode === 'live' ? 'Binance Live' : 'Model'} className={styles.mono} />}
         </div>
         <div className={`${styles['cndl-tools']} ${styles['card-body']}`}>
-          <div className={styles.chips}>
-            {Object.keys(CNDL_ASSETS).map((a) => (
-              <button key={a} type="button" className={`${styles.chip} ${a === cndlSel ? styles.on : ''}`} onClick={() => setCndlSel(a as keyof typeof CNDL_ASSETS)}>
-                {a}
-              </button>
+          <div className={styles['cndl-asset-groups']}>
+            {CHART_ASSET_GROUPS.map((g, gi) => (
+              <div className={styles['cndl-group']} key={g.key}>
+                {gi > 0 && <span className={styles['cndl-group-sep']} aria-hidden="true" />}
+                <span className={styles['cndl-group-label']}>{t.terminal.candles.assetGroups[g.key]}</span>
+                <div className={styles.chips}>
+                  {g.assets.map((a) => (
+                    <button key={a} type="button" className={`${styles.chip} ${a === cndlSel ? styles.on : ''}`} onClick={() => setCndlSel(a)}>
+                      {a}
+                    </button>
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
           <div style={{ marginInlineStart: 'auto', display: 'flex', gap: 6 }}>
@@ -150,7 +181,9 @@ export function CandlesScreen({ active }: { active: boolean }) {
             <span className={styles['card-note']}>{t.terminal.candles.last30}</span>
           </div>
           <div className={styles['card-body']}>
-            {patterns.length ? (
+            {!isCrypto ? (
+              <div className={styles.empty}>{t.terminal.candles.historicalCryptoOnly}</div>
+            ) : patterns.length ? (
               patterns.map(({ p, t: ts, c: k }, i) => {
                 const col = p.bias === 'bull' ? '#00D084' : p.bias === 'bear' ? '#FF5470' : '#F0A500';
                 const rng = k.h - k.l || 1;
@@ -185,27 +218,33 @@ export function CandlesScreen({ active }: { active: boolean }) {
         <div className={styles.card}>
           <div className={styles['card-head']}><span className={styles['card-title']}>{t.terminal.candles.multiTimeframeTrend}</span></div>
           <div className={styles['card-body']}>
-            <div className={styles.mtf}>
-              {mtf.map((m, i) =>
-                m ? (
-                  <div className={styles['mtf-cell']} key={m.tf}>
-                    <div className={styles['mtf-tf']}>{m.lbl}</div>
-                    <div className={styles['mtf-dir']} style={{ color: m.color }}>{t.terminal.candles.trend[m.dir as keyof typeof t.terminal.candles.trend]}</div>
-                    <div className={styles['mtf-bar']}><div className={styles['mtf-fill']} style={{ width: Math.min(100, Math.abs(m.diff) * 22 + 18) + '%', background: m.color }} /></div>
-                    <div style={{ fontSize: '.6rem', color: 'var(--dim)', marginTop: 5 }}>{t.terminal.candles.maSpread((m.diff >= 0 ? '+' : '') + num(m.diff))}</div>
-                  </div>
-                ) : (
-                  <div key={i} />
-                )
-              )}
-            </div>
+            {!isCrypto ? (
+              <div className={styles.empty}>{t.terminal.candles.historicalCryptoOnly}</div>
+            ) : (
+              <div className={styles.mtf}>
+                {mtf.map((m, i) =>
+                  m ? (
+                    <div className={styles['mtf-cell']} key={m.tf}>
+                      <div className={styles['mtf-tf']}>{m.lbl}</div>
+                      <div className={styles['mtf-dir']} style={{ color: m.color }}>{t.terminal.candles.trend[m.dir as keyof typeof t.terminal.candles.trend]}</div>
+                      <div className={styles['mtf-bar']}><div className={styles['mtf-fill']} style={{ width: Math.min(100, Math.abs(m.diff) * 22 + 18) + '%', background: m.color }} /></div>
+                      <div style={{ fontSize: '.6rem', color: 'var(--dim)', marginTop: 5 }}>{t.terminal.candles.maSpread((m.diff >= 0 ? '+' : '') + num(m.diff))}</div>
+                    </div>
+                  ) : (
+                    <div key={i} />
+                  )
+                )}
+              </div>
+            )}
           </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles['card-head']}><span className={styles['card-title']}>{t.terminal.candles.whyFormed}</span></div>
           <div className={styles['card-body']}>
-            {why && (
+            {!isCrypto ? (
+              <div className={styles.empty}>{t.terminal.candles.historicalCryptoOnly}</div>
+            ) : why && (
               <>
                 <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 12 }}>
                   <span className={`${styles.pill} ${styles[why.chg >= 0 ? 'bull' : 'bear']}`}>{why.chg >= 0 ? t.terminal.candles.up : t.terminal.candles.down} {num(Math.abs(why.chg))}%</span>

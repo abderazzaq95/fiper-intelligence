@@ -15,8 +15,10 @@ import type { NewsItem } from './marketData';
 const api = createClient();
 
 // Hours of news history to show, keyed by the same timeframe codes
-// CandlesScreen already uses ('15m' | '1h' | '4h' | '1d').
+// CandlesScreen already uses ('1m' | '5m' | '15m' | '1h' | '4h' | '1d').
 export const TIMEFRAME_NEWS_HOURS: Record<string, number> = {
+  '1m': 1,
+  '5m': 2,
   '15m': 4,
   '1h': 24,
   '4h': 48,
