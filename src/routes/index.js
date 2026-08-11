@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { cache } from '../lib/cache.js';
 import { config, providerHealth } from '../config.js';
 import { fetchKlines } from '../providers/binance.js';
+import { fetchExternalKlines } from '../providers/yahoo.js';
 import { clientCount } from '../ws/hub.js';
 
 export const router = Router();
@@ -85,6 +86,28 @@ router.get('/klines/:symbol', async (req, res) => {
   if (hit) return res.json({ ok: true, data: hit, cached: true });
 
   const data = await fetchKlines(symbol, interval, Math.min(Number(limit), 500));
+  if (!data) return res.status(502).json({ ok: false, error: 'Upstream unavailable' });
+  cache.set(key, data, 30_000);
+  res.json({ ok: true, data, cached: false });
+});
+
+/** Non-crypto OHLC (indices/commodities/FX) via Yahoo Finance, proxied
+ *  for the same reason as /klines above — plus Yahoo's chart API has no
+ *  CORS allowance for browser callers, so this one isn't optional the
+ *  way the Binance proxy is. `:symbol` is already Yahoo's own ticker
+ *  (e.g. GC=F, EURUSD=X) — the frontend resolves that mapping before
+ *  calling this route. */
+router.get('/klines-external/:symbol', async (req, res) => {
+  const { symbol } = req.params;
+  const { interval = '1h', limit = 80 } = req.query;
+  if (!/^(1m|5m|15m|1h|4h|1d)$/.test(interval)) {
+    return res.status(400).json({ ok: false, error: 'Unsupported interval' });
+  }
+  const key = `klines-external:${symbol}:${interval}:${limit}`;
+  const hit = cache.get(key);
+  if (hit) return res.json({ ok: true, data: hit, cached: true });
+
+  const data = await fetchExternalKlines(symbol, interval, Math.min(Number(limit), 500));
   if (!data) return res.status(502).json({ ok: false, error: 'Upstream unavailable' });
   cache.set(key, data, 30_000);
   res.json({ ok: true, data, cached: false });

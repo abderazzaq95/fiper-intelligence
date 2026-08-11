@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import styles from '../terminal.module.css';
 import { useMarketData } from '@/lib/terminal/MarketDataProvider';
 import { CNDL_ASSETS, CHART_ASSET_GROUPS, TFS, fetchKlines, seedKlines, detectPattern, type Kline } from '@/lib/terminal/candles';
+import { fetchExternalKlines } from '@/lib/terminal/yahooFinance';
 import { num } from '@/lib/terminal/format';
 import { tvSymbol, tvInterval } from '@/lib/terminal/tradingview';
 import { TIMEFRAME_NEWS_HOURS } from '@/lib/terminal/newsTimeline';
@@ -34,10 +35,13 @@ export function CandlesScreen({ active }: { active: boolean }) {
   const [srcMode, setSrcMode] = useState<SrcMode>('wait');
   const lastLoadedKey = useRef<string | null>(null);
 
-  // Only crypto assets are keys of CNDL_ASSETS (Binance-backed) — real
-  // pattern detection/multi-timeframe trend/"why formed" only run for
-  // those. The TradingView chart itself is unaffected either way, since
-  // it's driven by tvSymbol(cndlSel), not CNDL_ASSETS.
+  // Crypto assets are keys of CNDL_ASSETS and fetch from Binance
+  // (backend-proxied); everything else fetches from Yahoo Finance (also
+  // backend-proxied — see yahooFinance.ts for why that's required, not
+  // optional, for Yahoo specifically). Both paths return the same
+  // Kline[] shape, so patterns/MTF/"why formed" run identically either
+  // way — only the fetch function, symbol, and success-badge label
+  // differ between them.
   const isCrypto = Object.prototype.hasOwnProperty.call(CNDL_ASSETS, cndlSel);
 
   useEffect(() => {
@@ -46,16 +50,9 @@ export function CandlesScreen({ active }: { active: boolean }) {
     if (lastLoadedKey.current === key) return;
     lastLoadedKey.current = key;
 
-    const sym = CNDL_ASSETS[cndlSel];
-    if (!sym) {
-      // Non-crypto asset selected — nothing honest to fetch (see
-      // isCrypto comment above). Reset rather than carry over the
-      // previous asset's data.
-      setCndlData([]);
-      setMtfData({});
-      setSrcMode('wait');
-      return;
-    }
+    const fetchOne = isCrypto
+      ? (tf: string, limit: number) => fetchKlines(CNDL_ASSETS[cndlSel], tf, limit)
+      : (tf: string, limit: number) => fetchExternalKlines(cndlSel, tf, limit);
 
     let cancelled = false;
 
@@ -64,10 +61,11 @@ export function CandlesScreen({ active }: { active: boolean }) {
     // rest), which doubles the time the Multi-Timeframe Trend panel
     // sits empty for no reason — they don't depend on each other. Firing
     // them all together, and using allSettled instead of all, means a
-    // single rejected/timed-out request (see fetchKlines' own timeout
-    // guard in candles.ts) can't prevent the others from populating —
-    // each slot falls back to seedKlines() independently either way.
-    Promise.allSettled([fetchKlines(sym, cndlTF, 80), ...TFS.map(([tf]) => fetchKlines(sym, tf, 50))]).then((results) => {
+    // single rejected/timed-out request (see fetchKlines'/
+    // fetchExternalKlines' own timeout guards) can't prevent the others
+    // from populating — each slot falls back to seedKlines() independently
+    // either way.
+    Promise.allSettled([fetchOne(cndlTF, 80), ...TFS.map(([tf]) => fetchOne(tf, 50))]).then((results) => {
       if (cancelled) return;
       const [mainResult, ...tfResults] = results;
       const d = mainResult.status === 'fulfilled' ? mainResult.value : null;
@@ -84,7 +82,7 @@ export function CandlesScreen({ active }: { active: boolean }) {
     });
 
     return () => { cancelled = true; };
-  }, [active, cndlSel, cndlTF]);
+  }, [active, cndlSel, cndlTF, isCrypto]);
 
   const patterns = useMemo(() => {
     const found: { p: NonNullable<ReturnType<typeof detectPattern>>; t: number; c: Kline }[] = [];
@@ -129,11 +127,11 @@ export function CandlesScreen({ active }: { active: boolean }) {
       <div className={styles.card} style={{ marginBottom: 14 }}>
         <div className={styles['card-head']}>
           <span className={styles['card-title']}>{t.terminal.candles.candleAnalysis}</span>
-          {/* Only meaningful for crypto — see isCrypto comment above.
-              For a non-crypto selection nothing was fetched, so no
-              live/stale/demo claim would be honest here; omit rather
-              than badge something that didn't happen. */}
-          {isCrypto && <SourceBadge mode={srcMode} label={srcMode === 'live' ? 'Binance Live' : 'Model'} className={styles.mono} />}
+          <SourceBadge
+            mode={srcMode}
+            label={srcMode === 'live' ? (isCrypto ? 'Binance Live' : 'Yahoo') : 'Model'}
+            className={styles.mono}
+          />
         </div>
         <div className={`${styles['cndl-tools']} ${styles['card-body']}`}>
           <div className={styles['cndl-asset-groups']}>
@@ -181,9 +179,7 @@ export function CandlesScreen({ active }: { active: boolean }) {
             <span className={styles['card-note']}>{t.terminal.candles.last30}</span>
           </div>
           <div className={styles['card-body']}>
-            {!isCrypto ? (
-              <div className={styles.empty}>{t.terminal.candles.historicalCryptoOnly}</div>
-            ) : patterns.length ? (
+            {patterns.length ? (
               patterns.map(({ p, t: ts, c: k }, i) => {
                 const col = p.bias === 'bull' ? '#00D084' : p.bias === 'bear' ? '#FF5470' : '#F0A500';
                 const rng = k.h - k.l || 1;
@@ -218,33 +214,27 @@ export function CandlesScreen({ active }: { active: boolean }) {
         <div className={styles.card}>
           <div className={styles['card-head']}><span className={styles['card-title']}>{t.terminal.candles.multiTimeframeTrend}</span></div>
           <div className={styles['card-body']}>
-            {!isCrypto ? (
-              <div className={styles.empty}>{t.terminal.candles.historicalCryptoOnly}</div>
-            ) : (
-              <div className={styles.mtf}>
-                {mtf.map((m, i) =>
-                  m ? (
-                    <div className={styles['mtf-cell']} key={m.tf}>
-                      <div className={styles['mtf-tf']}>{m.lbl}</div>
-                      <div className={styles['mtf-dir']} style={{ color: m.color }}>{t.terminal.candles.trend[m.dir as keyof typeof t.terminal.candles.trend]}</div>
-                      <div className={styles['mtf-bar']}><div className={styles['mtf-fill']} style={{ width: Math.min(100, Math.abs(m.diff) * 22 + 18) + '%', background: m.color }} /></div>
-                      <div style={{ fontSize: '.6rem', color: 'var(--dim)', marginTop: 5 }}>{t.terminal.candles.maSpread((m.diff >= 0 ? '+' : '') + num(m.diff))}</div>
-                    </div>
-                  ) : (
-                    <div key={i} />
-                  )
-                )}
-              </div>
-            )}
+            <div className={styles.mtf}>
+              {mtf.map((m, i) =>
+                m ? (
+                  <div className={styles['mtf-cell']} key={m.tf}>
+                    <div className={styles['mtf-tf']}>{m.lbl}</div>
+                    <div className={styles['mtf-dir']} style={{ color: m.color }}>{t.terminal.candles.trend[m.dir as keyof typeof t.terminal.candles.trend]}</div>
+                    <div className={styles['mtf-bar']}><div className={styles['mtf-fill']} style={{ width: Math.min(100, Math.abs(m.diff) * 22 + 18) + '%', background: m.color }} /></div>
+                    <div style={{ fontSize: '.6rem', color: 'var(--dim)', marginTop: 5 }}>{t.terminal.candles.maSpread((m.diff >= 0 ? '+' : '') + num(m.diff))}</div>
+                  </div>
+                ) : (
+                  <div key={i} />
+                )
+              )}
+            </div>
           </div>
         </div>
 
         <div className={styles.card}>
           <div className={styles['card-head']}><span className={styles['card-title']}>{t.terminal.candles.whyFormed}</span></div>
           <div className={styles['card-body']}>
-            {!isCrypto ? (
-              <div className={styles.empty}>{t.terminal.candles.historicalCryptoOnly}</div>
-            ) : why && (
+            {why && (
               <>
                 <div style={{ display: 'flex', gap: 9, flexWrap: 'wrap', marginBottom: 12 }}>
                   <span className={`${styles.pill} ${styles[why.chg >= 0 ? 'bull' : 'bear']}`}>{why.chg >= 0 ? t.terminal.candles.up : t.terminal.candles.down} {num(Math.abs(why.chg))}%</span>

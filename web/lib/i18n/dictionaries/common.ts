@@ -57,6 +57,7 @@ export const en = {
     'Binance Live': 'Binance Live',
     'ECB Live': 'ECB Live',
     'CFTC Live': 'CFTC Live',
+    Yahoo: 'Yahoo',
   },
 
   // NewsCard / calendar impact pills — data values are HIGH/MED/LOW
@@ -194,6 +195,7 @@ export const ar: typeof en = {
     'Binance Live': 'بينانس مباشر',
     'ECB Live': 'البنك المركزي الأوروبي مباشر',
     'CFTC Live': 'لجنة تداول العقود الآجلة مباشر',
+    Yahoo: 'ياهو',
   },
 
   impact: {

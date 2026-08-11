@@ -212,12 +212,6 @@ export const en = {
     connectNewsFeed: 'Connect a news feed to see events — add MARKETAUX_KEY or FINNHUB_KEY to backend/.env',
     closePopup: 'Close',
     assetGroups: { crypto: 'Crypto', commodities: 'Commodities', indices: 'Indices', forex: 'Forex' },
-    // Pattern detection/multi-timeframe trend/"why formed" run on real
-    // Binance OHLC only (CLAUDE.md: real algorithm on real data, never
-    // fabricated) — shown in place of those three panels' normal content
-    // when a non-crypto asset is selected, rather than seeding fake
-    // candles under a real asset's name.
-    historicalCryptoOnly: 'Pattern detection, multi-timeframe trend, and candle analysis run on real Binance OHLC data — available for crypto assets only.',
   },
 
   backtest: {
@@ -659,7 +653,6 @@ export const ar: typeof en = {
     connectNewsFeed: 'اربط مصدر أخبار لعرض الأحداث — أضف MARKETAUX_KEY أو FINNHUB_KEY إلى backend/.env',
     closePopup: 'إغلاق',
     assetGroups: { crypto: 'العملات الرقمية', commodities: 'السلع', indices: 'المؤشرات', forex: 'الفوركس' },
-    historicalCryptoOnly: 'يعتمد اكتشاف الأنماط والاتجاه متعدد الأطر الزمنية وتحليل الشموع على بيانات بينانس الفعلية — متاح للعملات الرقمية فقط.',
   },
 
   backtest: {

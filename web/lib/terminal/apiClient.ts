@@ -105,6 +105,8 @@ export function createClient(base: string = CONFIG.apiBase) {
     calendar: () => call<any[]>('/calendar'),
     klines: (symbol: string, interval = '1h', limit = 100) =>
       call<any[]>(`/klines/${symbol}?interval=${interval}&limit=${limit}`),
+    klinesExternal: (symbol: string, interval = '1h', limit = 100) =>
+      call<any[]>(`/klines-external/${encodeURIComponent(symbol)}?interval=${interval}&limit=${limit}`),
 
     onUpdate(channel: string, fn: (data: any) => void) {
       if (!socket) connect();
