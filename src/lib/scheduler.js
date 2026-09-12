@@ -10,7 +10,7 @@ import { fetchCalendar } from '../providers/calendar.js';
 import { interpretBatch } from '../services/interpret.js';
 import { computeRisk } from '../services/risk.js';
 import { computeBias } from '../services/bias.js';
-import { refreshOanda, evaluateTrades } from '../services/autotrader.js';
+import { refreshOanda, evaluateTrades, refreshClosedTrades } from '../services/autotrader.js';
 import { broadcast } from '../ws/hub.js';
 
 /**
@@ -93,5 +93,6 @@ export async function startScheduler() {
   setInterval(() => refreshSlow().catch(e => log.error('slow', e.message)), config.refresh.slow);
   setInterval(() => refreshDaily().catch(e => log.error('daily', e.message)), config.refresh.daily);
   setInterval(() => refreshOanda().catch(e => log.error('oanda', e.message)), config.refresh.oanda);
+  setInterval(() => refreshClosedTrades().catch(e => log.error('trade-outcomes', e.message)), config.refresh.oanda);
   setInterval(() => evaluateTrades().catch(e => log.error('trade-eval', e.message)), config.refresh.tradeEval);
 }

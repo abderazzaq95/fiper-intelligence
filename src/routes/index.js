@@ -137,6 +137,7 @@ router.get('/trade/status', (_req, res) => {
       supportedInstruments: autotrader.supportedInstruments(),
       account: cache.getStale('oanda:account'),
       dailyPl: autotrader.getDailyPl(),
+      stats: autotrader.getStats(),
       secretConfigured: !!config.trade.apiSecret,
       oandaConfigured: !!(config.keys.oanda && config.oanda.accountId)
     }

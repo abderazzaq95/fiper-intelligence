@@ -62,6 +62,23 @@ export async function fetchPrevClose(instrument) {
   return +complete[complete.length - 1].mid.c;
 }
 
+/** A single trade's current state — used to detect when a placed order eventually closes (stop/target/manual) and what it realized. */
+export async function fetchTrade(tradeId) {
+  if (!ready()) return null;
+  const data = await get(`${BASE}/v3/accounts/${config.oanda.accountId}/trades/${encodeURIComponent(tradeId)}`, { headers: authHeaders() });
+  const trade = data?.trade;
+  if (!trade) return null;
+  return {
+    id: trade.id,
+    state: trade.state, // 'OPEN' | 'CLOSED'
+    realizedPL: trade.realizedPL != null ? +trade.realizedPL : null,
+    unrealizedPL: trade.unrealizedPL != null ? +trade.unrealizedPL : null,
+    price: +trade.price,
+    averageClosePrice: trade.averageClosePrice != null ? +trade.averageClosePrice : null,
+    closeTime: trade.closeTime ?? null
+  };
+}
+
 /** Open positions on the account. */
 export async function fetchOpenPositions() {
   if (!ready()) return null;

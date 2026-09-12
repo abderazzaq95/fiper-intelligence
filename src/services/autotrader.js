@@ -101,6 +101,48 @@ function logDecision(entry) {
   return history;
 }
 
+/**
+ * Every order this build places gets a tradeId attached (from OANDA's
+ * fill response) so its eventual outcome can be looked up later — see
+ * refreshClosedTrades(). Entries without a tradeId (skips, errors, or an
+ * order whose fill shape we didn't recognize) are simply never resolved,
+ * which is a safe degradation, not a crash.
+ */
+export async function refreshClosedTrades() {
+  const history = getHistory();
+  const pending = history.filter(h => h.action === 'order' && h.tradeId && !h.outcome);
+  if (!pending.length) return;
+
+  let changed = false;
+  for (const entry of pending) {
+    const trade = await oanda.fetchTrade(entry.tradeId);
+    if (!trade || trade.state !== 'CLOSED') continue;
+    entry.outcome = trade.realizedPL > 0 ? 'win' : trade.realizedPL < 0 ? 'loss' : 'breakeven';
+    entry.realizedPL = trade.realizedPL;
+    entry.closedAt = trade.closeTime ? Date.parse(trade.closeTime) : Date.now();
+    changed = true;
+  }
+  if (changed) {
+    cache.set(HISTORY_KEY, history, LONG_TTL);
+    broadcast('trades', { history: history.slice(0, 20), stats: getStats() });
+  }
+}
+
+/** Win rate + net realized P&L across every resolved trade in the log. */
+export function getStats() {
+  const closed = getHistory().filter(h => h.action === 'order' && h.outcome);
+  const wins = closed.filter(h => h.outcome === 'win').length;
+  const losses = closed.filter(h => h.outcome === 'loss').length;
+  const netRealizedPl = closed.reduce((sum, h) => sum + (h.realizedPL ?? 0), 0);
+  return {
+    closedCount: closed.length,
+    wins,
+    losses,
+    winRatePct: closed.length ? Math.round((wins / closed.length) * 1000) / 10 : null,
+    netRealizedPl: Math.round(netRealizedPl * 100) / 100
+  };
+}
+
 export function supportedInstruments() {
   return Object.keys(OANDA_INSTRUMENT);
 }
@@ -196,10 +238,12 @@ export async function evaluateTrades() {
     if (!units) { logDecision({ symbol, action: 'skip', reason: 'position size rounded to zero — risk % too small for this stop distance' }); continue; }
 
     const result = await oanda.placeMarketOrder({ instrument, units, stopLossPrice: round(stopPrice), takeProfitPrice: round(targetPrice) });
+    const tradeId = result.ok ? result.order?.tradeOpened?.tradeID : undefined;
     logDecision({
       symbol, instrument, action: result.ok ? 'order' : 'error',
       direction: bias.direction, units, price: mid, stopPrice, targetPrice,
       confidence: bias.confidence, inputs: bias.inputs,
+      tradeId, // used by refreshClosedTrades() to resolve win/loss later — absent if OANDA's fill shape didn't include tradeOpened
       error: result.ok ? undefined : result.error
     });
   }

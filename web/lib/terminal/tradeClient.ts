@@ -39,11 +39,20 @@ export interface OandaPosition {
   unrealizedPL: number;
 }
 
+export interface TradeStats {
+  closedCount: number;
+  wins: number;
+  losses: number;
+  winRatePct: number | null;
+  netRealizedPl: number;
+}
+
 export interface TradeStatus {
   settings: TradeSettings;
   supportedInstruments: string[];
   account: OandaAccount | null;
   dailyPl: number | null;
+  stats: TradeStats;
   secretConfigured: boolean;
   oandaConfigured: boolean;
 }
@@ -62,6 +71,10 @@ export interface TradeHistoryEntry {
   confidence?: number;
   inputs?: Record<string, number>;
   error?: string;
+  tradeId?: string;
+  outcome?: 'win' | 'loss' | 'breakeven';
+  realizedPL?: number;
+  closedAt?: number;
 }
 
 interface Result<T> {

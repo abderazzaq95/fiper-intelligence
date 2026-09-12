@@ -280,6 +280,32 @@ export function TradeScreen({ active }: { active: boolean }) {
 
           <div className={styles.card} style={{ marginBottom: 14 }}>
             <div className={styles['card-head']}>
+              <span className={styles['card-title']}>{tt.statsTitle}</span>
+            </div>
+            <div className={styles['card-body']}>
+              {status.stats.closedCount === 0 ? (
+                <div className={styles.empty}>{tt.notEnoughData}</div>
+              ) : (
+                <div className={styles['stat-row']}>
+                  <div className={styles.stat}>
+                    <div className={styles['stat-l']}>{tt.closedTrades}</div>
+                    <div className={styles['stat-v']}>{status.stats.closedCount}</div>
+                  </div>
+                  <div className={styles.stat}>
+                    <div className={styles['stat-l']}>{tt.winRate}</div>
+                    <div className={styles['stat-v']}>{status.stats.winRatePct == null ? '—' : `${status.stats.winRatePct}%`}</div>
+                  </div>
+                  <div className={styles.stat}>
+                    <div className={styles['stat-l']}>{tt.netRealizedPl}</div>
+                    <div className={`${styles['stat-v']} ${styles[cls(status.stats.netRealizedPl)]}`}>{sign(status.stats.netRealizedPl)}</div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className={styles.card} style={{ marginBottom: 14 }}>
+            <div className={styles['card-head']}>
               <span className={styles['card-title']}>{tt.positionsTitle}</span>
             </div>
             <div className={styles['card-body']}>
@@ -340,6 +366,20 @@ export function TradeScreen({ active }: { active: boolean }) {
                         {typeof h.confidence === 'number' ? ` — ${tt.confidenceLabel(h.confidence)}` : ''}
                         {h.reason ? <div style={{ color: 'var(--muted)', fontSize: '.72rem', marginTop: 2 }}>{tt.reasonLabel} {h.reason}</div> : null}
                         {h.error ? <div style={{ color: 'var(--bear)', fontSize: '.72rem', marginTop: 2 }}>{h.error}</div> : null}
+                        {h.action === 'order' && (
+                          <div style={{ marginTop: 2 }}>
+                            {h.outcome ? (
+                              <span
+                                className={`${styles.pill} ${styles[h.outcome === 'win' ? 'bull' : h.outcome === 'loss' ? 'bear' : 'neutral']}`}
+                              >
+                                {h.outcome === 'win' ? tt.outcomeWin : h.outcome === 'loss' ? tt.outcomeLoss : tt.outcomeBreakeven}
+                                {typeof h.realizedPL === 'number' ? ` ${sign(h.realizedPL)}` : ''}
+                              </span>
+                            ) : h.tradeId ? (
+                              <span style={{ fontSize: '.7rem', color: 'var(--dim)' }}>{tt.pendingOutcome}</span>
+                            ) : null}
+                          </div>
+                        )}
                         <div style={{ color: 'var(--dim)', fontSize: '.68rem', marginTop: 2 }}>{new Date(h.at).toLocaleTimeString()}</div>
                       </span>
                     </div>
