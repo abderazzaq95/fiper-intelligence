@@ -25,12 +25,13 @@ const BASE = 'https://demo-api-capital.backend-capital.com/api/v1';
 const SESSION_MAX_AGE = 9 * 60_000; // re-auth before Capital.com's own 10-minute idle timeout
 
 let session = null; // { cst, securityToken, at }
+let authInFlight = null; // single-flight guard — see authenticate()
 
 function ready() {
   return !!(config.keys.capital && config.capital.identifier && config.capital.password);
 }
 
-async function authenticate() {
+async function doAuthenticate() {
   const res = await fetch(`${BASE}/session`, {
     method: 'POST',
     headers: { 'X-CAP-API-KEY': config.keys.capital, 'content-type': 'application/json' },
@@ -46,6 +47,21 @@ async function authenticate() {
   if (!cst || !securityToken) { session = null; return null; }
   session = { cst, securityToken, at: Date.now() };
   return session;
+}
+
+/**
+ * Single-flighted: refreshBroker() fires several requests in parallel
+ * (account, positions, one per instrument's price) and with no session
+ * yet, every one of them would otherwise call this at the same instant.
+ * Capital.com allows only 1 request/second to /session, so that stampede
+ * gets rate-limited (HTTP 429) rather than authenticated — concurrent
+ * callers now share the one in-flight login instead.
+ */
+function authenticate() {
+  if (!authInFlight) {
+    authInFlight = doAuthenticate().finally(() => { authInFlight = null; });
+  }
+  return authInFlight;
 }
 
 async function ensureSession() {
