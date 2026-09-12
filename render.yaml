@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: fiper-backend
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: CORS_ORIGIN
+        sync: false
+      - key: CAPITAL_API_KEY
+        sync: false
+      - key: CAPITAL_IDENTIFIER
+        sync: false
+      - key: CAPITAL_PASSWORD
+        sync: false
+      - key: TRADE_API_SECRET
+        sync: false
+      - key: TRADE_ENABLED
+        value: "false"
+      - key: TRADE_MAX_RISK_PCT
+        value: "1"
+      - key: TRADE_MAX_DAILY_LOSS_PCT
+        value: "3"
+      - key: TRADE_MAX_OPEN_POSITIONS
+        value: "3"
+      - key: TRADE_MIN_CONFIDENCE
+        value: "70"
+      - key: TRADE_ALLOWED_INSTRUMENTS
+        value: "XAUUSD,EURUSD,GBPUSD"
