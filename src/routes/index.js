@@ -3,6 +3,8 @@ import { cache } from '../lib/cache.js';
 import { config, providerHealth } from '../config.js';
 import { fetchKlines } from '../providers/binance.js';
 import { fetchExternalKlines } from '../providers/yahoo.js';
+import { closePosition } from '../providers/oanda.js';
+import * as autotrader from '../services/autotrader.js';
 import { clientCount } from '../ws/hub.js';
 
 export const router = Router();
@@ -111,4 +113,59 @@ router.get('/klines-external/:symbol', async (req, res) => {
   if (!data) return res.status(502).json({ ok: false, error: 'Upstream unavailable' });
   cache.set(key, data, 30_000);
   res.json({ ok: true, data, cached: false });
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   "Trade for Me" — paper-trading auto-execution via OANDA. Read routes
+   are open like everything else above; the POST routes below actually
+   control order placement, so they're gated by TRADE_API_SECRET when
+   one is configured — the rest of this API has no auth concept, and
+   this is the one surface where that stops being acceptable.
+═══════════════════════════════════════════════════════════════════ */
+function requireTradeSecret(req, res, next) {
+  if (!config.trade.apiSecret) return next(); // no secret configured — fine for a personal localhost-only setup, but the /trade/status response flags it
+  if (req.get('x-trade-secret') === config.trade.apiSecret) return next();
+  res.status(401).json({ ok: false, error: 'Missing or invalid x-trade-secret header' });
+}
+
+router.get('/trade/status', (_req, res) => {
+  const settings = autotrader.getSettings();
+  res.json({
+    ok: true,
+    data: {
+      settings,
+      supportedInstruments: autotrader.supportedInstruments(),
+      account: cache.getStale('oanda:account'),
+      dailyPl: autotrader.getDailyPl(),
+      secretConfigured: !!config.trade.apiSecret,
+      oandaConfigured: !!(config.keys.oanda && config.oanda.accountId)
+    }
+  });
+});
+
+router.get('/trade/positions', (_req, res) => {
+  res.json({ ok: true, data: cache.getStale('oanda:positions') ?? [] });
+});
+
+router.get('/trade/history', (req, res) => {
+  const { limit = 50 } = req.query;
+  res.json({ ok: true, data: autotrader.getHistory().slice(0, Number(limit)) });
+});
+
+router.post('/trade/settings', requireTradeSecret, (req, res) => {
+  const next = autotrader.updateSettings(req.body ?? {});
+  res.json({ ok: true, data: next });
+});
+
+router.post('/trade/kill', requireTradeSecret, (req, res) => {
+  const reason = typeof req.body?.reason === 'string' ? req.body.reason.slice(0, 200) : 'manual';
+  const next = autotrader.tripKillSwitch(reason);
+  res.json({ ok: true, data: next });
+});
+
+/** Closes a position outright — a separate explicit action from the kill switch, which only stops new orders. */
+router.post('/trade/close/:instrument', requireTradeSecret, async (req, res) => {
+  const result = await closePosition(req.params.instrument);
+  if (!result.ok) return res.status(502).json({ ok: false, error: result.error });
+  res.json({ ok: true, data: result.body });
 });

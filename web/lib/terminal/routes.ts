@@ -8,7 +8,8 @@
 export type ScreenKey =
   | 'home' | 'headlines' | 'calendar' | 'bias'
   | 'global' | 'flows' | 'cot' | 'forecasts'
-  | 'candles' | 'backtest' | 'stocks' | 'crypto';
+  | 'candles' | 'backtest' | 'stocks' | 'crypto'
+  | 'trade';
 
 // [breadcrumb group, breadcrumb name]
 export const ROUTES: Record<ScreenKey, [string, string]> = {
@@ -24,6 +25,7 @@ export const ROUTES: Record<ScreenKey, [string, string]> = {
   backtest: ['Research', 'Fundamental Backtesting'],
   stocks: ['Research', 'Stock Research'],
   crypto: ['Research', 'Crypto Macro'],
+  trade: ['Trade for Me', 'Trade for Me'],
 };
 
 export interface NavItem {
@@ -55,5 +57,8 @@ export const NAV: NavGroup[] = [
     { key: 'backtest', icon: '⌗', label: 'Backtesting' },
     { key: 'stocks', icon: '◫', label: 'Stock Research' },
     { key: 'crypto', icon: '₿', label: 'Crypto Macro' },
+  ] },
+  { group: 'Trade for Me', items: [
+    { key: 'trade', icon: '⚡', label: 'Trade for Me' },
   ] },
 ];

@@ -137,6 +137,7 @@ export const en = {
     backtest: ['Research', 'Fundamental Backtesting'],
     stocks: ['Research', 'Stock Research'],
     crypto: ['Research', 'Crypto Macro'],
+    trade: ['Trade for Me', 'Trade for Me'],
   } as Record<ScreenKey, [string, string]>,
   navLabel: {
     home: 'Home',
@@ -151,11 +152,13 @@ export const en = {
     backtest: 'Backtesting',
     stocks: 'Stock Research',
     crypto: 'Crypto Macro',
+    trade: 'Trade for Me',
   } as Record<ScreenKey, string>,
   navGroup: {
     'Market Pulse': 'Market Pulse',
     Markets: 'Markets',
     Research: 'Research',
+    'Trade for Me': 'Trade for Me',
   },
 };
 
@@ -266,6 +269,7 @@ export const ar: typeof en = {
     backtest: ['الأبحاث', 'الاختبار الأساسي التاريخي'],
     stocks: ['الأبحاث', 'أبحاث الأسهم'],
     crypto: ['الأبحاث', 'اقتصاد العملات الرقمية الكلي'],
+    trade: ['تداول نيابة عني', 'تداول نيابة عني'],
   },
   navLabel: {
     home: 'الرئيسية',
@@ -280,10 +284,12 @@ export const ar: typeof en = {
     backtest: 'الاختبار التاريخي',
     stocks: 'أبحاث الأسهم',
     crypto: 'اقتصاد العملات الرقمية الكلي',
+    trade: 'تداول نيابة عني',
   },
   navGroup: {
     'Market Pulse': 'نبض السوق',
     Markets: 'الأسواق',
     Research: 'الأبحاث',
+    'Trade for Me': 'تداول نيابة عني',
   },
 };

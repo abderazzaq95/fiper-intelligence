@@ -18,6 +18,7 @@ import { CandlesScreen } from './screens/CandlesScreen';
 import { BacktestScreen } from './screens/BacktestScreen';
 import { StocksScreen } from './screens/StocksScreen';
 import { CryptoScreen } from './screens/CryptoScreen';
+import { TradeScreen } from './screens/TradeScreen';
 
 /* Ported from the #app shell + route(). All 12 <section class="screen">
    blocks stay mounted simultaneously (toggled via the `.on` class, same
@@ -95,6 +96,10 @@ export function TerminalShell() {
 
           <section className={screenClass('crypto')} id="s-crypto">
             <CryptoScreen />
+          </section>
+
+          <section className={screenClass('trade')} id="s-trade">
+            <TradeScreen active={activeScreen === 'trade'} />
           </section>
         </main>
       </div>

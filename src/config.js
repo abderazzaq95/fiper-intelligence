@@ -12,7 +12,8 @@ export const config = {
     finnhub:    process.env.FINNHUB_KEY    || null,
     fmp:        process.env.FMP_KEY        || null,
     te:         process.env.TRADING_ECONOMICS_KEY || null,
-    anthropic:  process.env.ANTHROPIC_API_KEY || null
+    anthropic:  process.env.ANTHROPIC_API_KEY || null,
+    oanda:      process.env.OANDA_API_KEY  || null
   },
 
   anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6',
@@ -20,7 +21,30 @@ export const config = {
   refresh: {
     fast:  n(process.env.REFRESH_FAST, 15_000),    // prices
     slow:  n(process.env.REFRESH_SLOW, 300_000),   // news, calendar
-    daily: n(process.env.REFRESH_DAILY, 3_600_000) // COT, FX reference
+    daily: n(process.env.REFRESH_DAILY, 3_600_000), // COT, FX reference
+    oanda: n(process.env.REFRESH_OANDA, 20_000),      // account/positions/pricing poll
+    tradeEval: n(process.env.TRADE_EVAL_INTERVAL, 5 * 60_000) // decision loop — deliberately not tick-fast
+  },
+
+  /**
+   * "Trade for Me" — paper-trading auto-execution against an OANDA
+   * practice account. Deliberately no live-host config anywhere here;
+   * going live is a future, separately-considered change, not a flag.
+   */
+  oanda: {
+    accountId: process.env.OANDA_ACCOUNT_ID || null,
+    // practice only — see providers/oanda.js
+  },
+  trade: {
+    enabledDefault: (process.env.TRADE_ENABLED || 'false').toLowerCase() === 'true',
+    maxRiskPct:        n(process.env.TRADE_MAX_RISK_PCT, 1),
+    maxDailyLossPct:   n(process.env.TRADE_MAX_DAILY_LOSS_PCT, 3),
+    maxOpenPositions:  n(process.env.TRADE_MAX_OPEN_POSITIONS, 3),
+    minConfidence:     n(process.env.TRADE_MIN_CONFIDENCE, 70),
+    // canonical app symbols (bias.js/cftc.js convention — no underscore), mapped to OANDA codes in services/autotrader.js
+    allowedInstruments: (process.env.TRADE_ALLOWED_INSTRUMENTS || 'XAUUSD,EURUSD,GBPUSD')
+      .split(',').map(s => s.trim().toUpperCase()).filter(Boolean),
+    apiSecret: process.env.TRADE_API_SECRET || null
   },
 
   // assets the terminal tracks — single source of truth
@@ -41,6 +65,7 @@ export function providerHealth() {
     quotes:      { keyless: false, enabled: !!config.keys.twelvedata, needs: 'TWELVEDATA_KEY' },
     news:        { keyless: false, enabled: !!(config.keys.marketaux || config.keys.finnhub), needs: 'MARKETAUX_KEY or FINNHUB_KEY' },
     calendar:    { keyless: false, enabled: !!(config.keys.fmp || config.keys.te), needs: 'FMP_KEY or TRADING_ECONOMICS_KEY' },
-    interpret:   { keyless: false, enabled: !!config.keys.anthropic, needs: 'ANTHROPIC_API_KEY' }
+    interpret:   { keyless: false, enabled: !!config.keys.anthropic, needs: 'ANTHROPIC_API_KEY' },
+    oanda:       { keyless: false, enabled: !!(config.keys.oanda && config.oanda.accountId), needs: 'OANDA_API_KEY and OANDA_ACCOUNT_ID' }
   };
 }
