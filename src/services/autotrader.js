@@ -2,7 +2,7 @@ import { cache } from '../lib/cache.js';
 import { log } from '../lib/logger.js';
 import { config } from '../config.js';
 import { computeBias } from './bias.js';
-import * as oanda from '../providers/oanda.js';
+import * as capital from '../providers/capital.js';
 import { broadcast } from '../ws/hub.js';
 
 /**
@@ -15,34 +15,35 @@ import { broadcast } from '../ws/hub.js';
  * distance instead of model output — but the same rule applies: an
  * unexplainable, unbounded trading decision is worse than no decision.
  *
- * Paper account only. No live OANDA host exists anywhere in this file
- * or in providers/oanda.js — see CLAUDE.md.
+ * Demo account only. No live Capital.com host exists anywhere in this
+ * file or in providers/capital.js — see CLAUDE.md.
  */
 
-// canonical app symbol (matches bias.js/cftc.js/interpret.js convention) -> OANDA instrument code
-const OANDA_INSTRUMENT = {
-  XAUUSD: 'XAU_USD',
-  XAGUSD: 'XAG_USD',
-  EURUSD: 'EUR_USD',
-  GBPUSD: 'GBP_USD',
-  USDJPY: 'USD_JPY',
-  AUDUSD: 'AUD_USD',
-  USDCAD: 'USD_CAD',
-  USDCHF: 'USD_CHF',
-  NZDUSD: 'NZD_USD'
+// canonical app symbol (matches bias.js/cftc.js/interpret.js convention) -> Capital.com epic
+const CAPITAL_EPIC = {
+  XAUUSD: 'GOLD',
+  XAGUSD: 'SILVER',
+  EURUSD: 'EURUSD',
+  GBPUSD: 'GBPUSD',
+  USDJPY: 'USDJPY',
+  AUDUSD: 'AUDUSD',
+  USDCAD: 'USDCAD',
+  USDCHF: 'USDCHF',
+  NZDUSD: 'NZDUSD'
 };
 
 const SETTINGS_KEY = 'trade:settings';
 const HISTORY_KEY = 'trade:history';
 const HISTORY_LIMIT = 200;
 const LONG_TTL = 365 * 24 * 3600_000; // settings/history — not a real cache, just this backend's only persistence mechanism (see CLAUDE.md Redis/Postgres roadmap)
+const MAX_OUTCOME_ATTEMPTS = 15; // ~5 min of retrying at the broker poll cadence before giving up on resolving a closed trade's P&L
 
 function defaultSettings() {
   return {
     enabled: config.trade.enabledDefault,
     riskPct: config.trade.maxRiskPct,
     minConfidence: config.trade.minConfidence,
-    allowedInstruments: config.trade.allowedInstruments.filter(s => OANDA_INSTRUMENT[s]),
+    allowedInstruments: config.trade.allowedInstruments.filter(s => CAPITAL_EPIC[s]),
     killSwitch: null // { at, reason } once the daily-loss breaker (or a manual kill) has fired
   };
 }
@@ -65,7 +66,7 @@ export function updateSettings(patch) {
   if ('riskPct' in patch) next.riskPct = clamp(Number(patch.riskPct), 0.1, config.trade.maxRiskPct);
   if ('minConfidence' in patch) next.minConfidence = clamp(Number(patch.minConfidence), 50, 95);
   if ('allowedInstruments' in patch && Array.isArray(patch.allowedInstruments)) {
-    next.allowedInstruments = patch.allowedInstruments.filter(s => OANDA_INSTRUMENT[s]);
+    next.allowedInstruments = patch.allowedInstruments.filter(s => CAPITAL_EPIC[s]);
   }
 
   cache.set(SETTINGS_KEY, next, LONG_TTL);
@@ -84,13 +85,15 @@ export function getHistory() {
   return cache.getStale(HISTORY_KEY) ?? [];
 }
 
-/** Today's realized P&L, derived the same way evaluateTrades()'s circuit breaker computes it. Null until a baseline exists (first eval cycle of the day). */
+function isToday(ts) {
+  return new Date(ts).toISOString().slice(0, 10) === new Date().toISOString().slice(0, 10);
+}
+
+/** Sum of realized P&L across trades this build closed today. Used both for display and the daily circuit breaker. */
 export function getDailyPl() {
-  const account = cache.getStale('oanda:account');
-  const baseline = cache.get('oanda:dayBaseline');
-  const today = new Date().toISOString().slice(0, 10);
-  if (!account || !baseline || baseline.day !== today) return null;
-  return account.pl - baseline.pl;
+  const closedToday = getHistory().filter(h => h.action === 'order' && h.closedAt && isToday(h.closedAt) && typeof h.realizedPL === 'number');
+  if (!closedToday.length) return null;
+  return Math.round(closedToday.reduce((sum, h) => sum + h.realizedPL, 0) * 100) / 100;
 }
 
 function logDecision(entry) {
@@ -102,25 +105,39 @@ function logDecision(entry) {
 }
 
 /**
- * Every order this build places gets a tradeId attached (from OANDA's
- * fill response) so its eventual outcome can be looked up later — see
- * refreshClosedTrades(). Entries without a tradeId (skips, errors, or an
- * order whose fill shape we didn't recognize) are simply never resolved,
- * which is a safe degradation, not a crash.
+ * Every order this build places gets a tradeId attached (Capital.com's
+ * dealId) so its eventual outcome can be looked up once it's no longer
+ * in the open-positions list. Entries without a tradeId (skips, errors)
+ * are simply never resolved — a safe degradation, not a crash. Capital.com
+ * has no single-trade lookup the way OANDA did, so this searches recent
+ * transaction history instead and gives up after MAX_OUTCOME_ATTEMPTS
+ * rather than retrying forever if that lookup never finds a match.
  */
 export async function refreshClosedTrades() {
   const history = getHistory();
   const pending = history.filter(h => h.action === 'order' && h.tradeId && !h.outcome);
   if (!pending.length) return;
 
+  const openDealIds = new Set((cache.getStale('capital:positions') ?? []).map(p => p.dealId));
   let changed = false;
+
   for (const entry of pending) {
-    const trade = await oanda.fetchTrade(entry.tradeId);
-    if (!trade || trade.state !== 'CLOSED') continue;
-    entry.outcome = trade.realizedPL > 0 ? 'win' : trade.realizedPL < 0 ? 'loss' : 'breakeven';
-    entry.realizedPL = trade.realizedPL;
-    entry.closedAt = trade.closeTime ? Date.parse(trade.closeTime) : Date.now();
-    changed = true;
+    if (openDealIds.has(entry.tradeId)) continue; // still open — nothing to resolve yet
+
+    entry.unresolvedAttempts = (entry.unresolvedAttempts ?? 0) + 1;
+    const pnl = await capital.fetchClosedPnl(entry.tradeId);
+    if (pnl != null) {
+      entry.outcome = pnl > 0 ? 'win' : pnl < 0 ? 'loss' : 'breakeven';
+      entry.realizedPL = pnl;
+      entry.closedAt = Date.now();
+      changed = true;
+    } else if (entry.unresolvedAttempts >= MAX_OUTCOME_ATTEMPTS) {
+      entry.outcome = 'unknown';
+      entry.realizedPL = null;
+      entry.closedAt = Date.now();
+      changed = true;
+      log.warn(`trade outcome unresolved after ${MAX_OUTCOME_ATTEMPTS} attempts: ${entry.symbol} (${entry.tradeId})`);
+    }
   }
   if (changed) {
     cache.set(HISTORY_KEY, history, LONG_TTL);
@@ -128,9 +145,9 @@ export async function refreshClosedTrades() {
   }
 }
 
-/** Win rate + net realized P&L across every resolved trade in the log. */
+/** Win rate + net realized P&L across every resolved trade in the log. 'unknown' outcomes (lookup gave up) are excluded rather than guessed. */
 export function getStats() {
-  const closed = getHistory().filter(h => h.action === 'order' && h.outcome);
+  const closed = getHistory().filter(h => h.action === 'order' && h.outcome && h.outcome !== 'unknown');
   const wins = closed.filter(h => h.outcome === 'win').length;
   const losses = closed.filter(h => h.outcome === 'loss').length;
   const netRealizedPl = closed.reduce((sum, h) => sum + (h.realizedPL ?? 0), 0);
@@ -144,53 +161,48 @@ export function getStats() {
 }
 
 export function supportedInstruments() {
-  return Object.keys(OANDA_INSTRUMENT);
+  return Object.keys(CAPITAL_EPIC);
 }
 
 /**
- * Poll pricing/account/positions from OANDA and cache them — kept
+ * Poll pricing/account/positions from Capital.com and cache them — kept
  * separate from the decision loop below so the UI always shows current
  * account state even while trading is disabled.
  */
-export async function refreshOanda() {
+export async function refreshBroker() {
   const settings = getSettings();
-  const instruments = settings.allowedInstruments.map(s => OANDA_INSTRUMENT[s]).filter(Boolean);
+  const epics = settings.allowedInstruments.map(s => CAPITAL_EPIC[s]).filter(Boolean);
 
-  const [account, positions, pricing] = await Promise.all([
-    oanda.fetchAccountSummary(),
-    oanda.fetchOpenPositions(),
-    instruments.length ? oanda.fetchPricing(instruments) : Promise.resolve(null)
+  const [account, positions, ...markets] = await Promise.all([
+    capital.fetchAccountSummary(),
+    capital.fetchOpenPositions(),
+    ...epics.map(e => capital.fetchMarket(e))
   ]);
 
-  if (account) cache.set('oanda:account', account, 60_000);
-  if (positions) cache.set('oanda:positions', positions, 60_000);
-  if (pricing) cache.set('oanda:pricing', pricing, 60_000);
+  if (account) cache.set('capital:account', account, 60_000);
+  if (positions) cache.set('capital:positions', positions, 60_000);
+  const pricing = markets.filter(Boolean);
+  if (pricing.length) cache.set('capital:pricing', pricing, 60_000);
 
   broadcast('trades', {
-    account: cache.getStale('oanda:account'),
-    positions: cache.getStale('oanda:positions'),
+    account: cache.getStale('capital:account'),
+    positions: cache.getStale('capital:positions'),
     settings
   });
 }
 
-/** The decision loop — runs on a slower interval than refreshOanda(), registered in lib/scheduler.js. */
+/** The decision loop — runs on a slower interval than refreshBroker(), registered in lib/scheduler.js. */
 export async function evaluateTrades() {
   const settings = getSettings();
   if (!settings.enabled) return;
-  if (!config.keys.oanda || !config.oanda.accountId) return;
+  if (!config.keys.capital || !config.capital.identifier) return;
 
-  const account = cache.getStale('oanda:account');
-  if (!account) { log.warn('trade: no OANDA account data yet, skipping cycle'); return; }
+  const account = cache.getStale('capital:account');
+  if (!account) { log.warn('trade: no Capital.com account data yet, skipping cycle'); return; }
 
-  // Daily realized-loss circuit breaker. OANDA's account.pl is a lifetime
-  // counter, so the first observation each UTC day becomes the baseline
-  // and everything after is compared against it.
-  const today = new Date().toISOString().slice(0, 10);
-  const baseline = cache.get('oanda:dayBaseline');
-  if (!baseline || baseline.day !== today) {
-    cache.set('oanda:dayBaseline', { day: today, pl: account.pl }, 25 * 3600_000);
-  } else {
-    const dailyPl = account.pl - baseline.pl;
+  // Daily realized-loss circuit breaker, computed from today's already-resolved closed trades (see getDailyPl).
+  const dailyPl = getDailyPl();
+  if (dailyPl != null) {
     const lossPct = (-dailyPl / account.balance) * 100;
     if (lossPct >= config.trade.maxDailyLossPct) {
       tripKillSwitch(`daily loss limit hit (${lossPct.toFixed(2)}% >= ${config.trade.maxDailyLossPct}%)`);
@@ -198,25 +210,25 @@ export async function evaluateTrades() {
     }
   }
 
-  const positions = cache.getStale('oanda:positions') ?? [];
-  const openCount = positions.filter(p => p.longUnits || p.shortUnits).length;
+  const positions = cache.getStale('capital:positions') ?? [];
+  const openCount = positions.length;
   const risk = cache.getStale('risk') ?? { score: 50 };
   const cotMarkets = cache.getStale('cot')?.markets ?? {};
   const dxyChange = (cache.getStale('quotes') ?? []).find(q => q.symbol === 'DXY')?.change ?? 0;
 
   for (const symbol of settings.allowedInstruments) {
-    const instrument = OANDA_INSTRUMENT[symbol];
-    if (!instrument) continue; // not one of the instruments this build actually supports — allowlist, not a suggestion
+    const epic = CAPITAL_EPIC[symbol];
+    if (!epic) continue; // not one of the instruments this build actually supports — allowlist, not a suggestion
 
-    const already = positions.find(p => p.instrument === instrument && (p.longUnits || p.shortUnits));
+    const already = positions.find(p => p.epic === epic);
     if (already) { logDecision({ symbol, action: 'skip', reason: 'position already open' }); continue; }
     if (openCount >= config.trade.maxOpenPositions) { logDecision({ symbol, action: 'skip', reason: 'max open positions reached' }); continue; }
 
-    const priceRow = (cache.getStale('oanda:pricing') ?? []).find(p => p.instrument === instrument);
-    const prevClose = await oanda.fetchPrevClose(instrument);
+    const priceRow = (cache.getStale('capital:pricing') ?? []).find(p => p.epic === epic);
+    const prevClose = await capital.fetchPrevClose(epic);
     if (!priceRow || !prevClose) { logDecision({ symbol, action: 'skip', reason: 'no price data yet' }); continue; }
 
-    const mid = (priceRow.bid + priceRow.ask) / 2;
+    const mid = (priceRow.bid + priceRow.offer) / 2;
     const change = ((mid - prevClose) / prevClose) * 100;
     const bias = computeBias(symbol, { quote: { price: mid, change }, risk, cot: cotMarkets[symbol], dollarChange: dxyChange });
 
@@ -233,17 +245,17 @@ export async function evaluateTrades() {
     if (!stopDistance) { logDecision({ symbol, action: 'skip', reason: 'zero stop distance' }); continue; }
 
     const riskAmount = account.balance * (settings.riskPct / 100);
-    let units = Math.floor(riskAmount / stopDistance);
-    if (!long) units = -units;
-    if (!units) { logDecision({ symbol, action: 'skip', reason: 'position size rounded to zero — risk % too small for this stop distance' }); continue; }
+    const size = Math.round((riskAmount / stopDistance) * 100) / 100;
+    if (!size) { logDecision({ symbol, action: 'skip', reason: 'position size rounded to zero — risk % too small for this stop distance' }); continue; }
 
-    const result = await oanda.placeMarketOrder({ instrument, units, stopLossPrice: round(stopPrice), takeProfitPrice: round(targetPrice) });
-    const tradeId = result.ok ? result.order?.tradeOpened?.tradeID : undefined;
+    const direction = long ? 'BUY' : 'SELL';
+    const result = await capital.placeMarketOrder({ epic, direction, size, stopLevel: round(stopPrice), profitLevel: round(targetPrice) });
+    const tradeId = result.ok ? result.order?.dealId : undefined;
     logDecision({
-      symbol, instrument, action: result.ok ? 'order' : 'error',
-      direction: bias.direction, units, price: mid, stopPrice, targetPrice,
+      symbol, instrument: epic, action: result.ok ? 'order' : 'error',
+      direction: bias.direction, units: long ? size : -size, price: mid, stopPrice, targetPrice,
       confidence: bias.confidence, inputs: bias.inputs,
-      tradeId, // used by refreshClosedTrades() to resolve win/loss later — absent if OANDA's fill shape didn't include tradeOpened
+      tradeId, // used by refreshClosedTrades() to resolve win/loss later — absent if the confirm response shape didn't include a dealId
       error: result.ok ? undefined : result.error
     });
   }

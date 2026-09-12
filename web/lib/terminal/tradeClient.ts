@@ -22,20 +22,20 @@ export interface TradeSettings {
   killSwitch: { at: number; reason: string } | null;
 }
 
-export interface OandaAccount {
+export interface BrokerAccount {
   balance: number;
-  nav: number;
-  marginUsed: number;
-  marginAvailable: number;
+  available: number;
+  deposit: number | null;
   unrealizedPL: number;
-  pl: number;
+  currency: string;
   at: number;
 }
 
-export interface OandaPosition {
-  instrument: string;
-  longUnits: number;
-  shortUnits: number;
+export interface BrokerPosition {
+  dealId: string;
+  epic: string;
+  direction: 'BUY' | 'SELL';
+  size: number;
   unrealizedPL: number;
 }
 
@@ -50,11 +50,11 @@ export interface TradeStats {
 export interface TradeStatus {
   settings: TradeSettings;
   supportedInstruments: string[];
-  account: OandaAccount | null;
+  account: BrokerAccount | null;
   dailyPl: number | null;
   stats: TradeStats;
   secretConfigured: boolean;
-  oandaConfigured: boolean;
+  brokerConfigured: boolean;
 }
 
 export interface TradeHistoryEntry {
@@ -72,7 +72,7 @@ export interface TradeHistoryEntry {
   inputs?: Record<string, number>;
   error?: string;
   tradeId?: string;
-  outcome?: 'win' | 'loss' | 'breakeven';
+  outcome?: 'win' | 'loss' | 'breakeven' | 'unknown';
   realizedPL?: number;
   closedAt?: number;
 }
@@ -113,9 +113,9 @@ async function postJson<T>(path: string, body: unknown): Promise<Result<T>> {
 
 export const tradeClient = {
   status: () => getJson<TradeStatus>('/trade/status'),
-  positions: () => getJson<OandaPosition[]>('/trade/positions'),
+  positions: () => getJson<BrokerPosition[]>('/trade/positions'),
   history: (limit = 50) => getJson<TradeHistoryEntry[]>(`/trade/history?limit=${limit}`),
   updateSettings: (patch: Partial<TradeSettings>) => postJson<TradeSettings>('/trade/settings', patch),
   killSwitch: (reason: string) => postJson<TradeSettings>('/trade/kill', { reason }),
-  closePosition: (instrument: string) => postJson<unknown>(`/trade/close/${encodeURIComponent(instrument)}`, {}),
+  closePosition: (dealId: string) => postJson<unknown>(`/trade/close/${encodeURIComponent(dealId)}`, {}),
 };

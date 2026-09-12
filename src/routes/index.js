@@ -3,7 +3,7 @@ import { cache } from '../lib/cache.js';
 import { config, providerHealth } from '../config.js';
 import { fetchKlines } from '../providers/binance.js';
 import { fetchExternalKlines } from '../providers/yahoo.js';
-import { closePosition } from '../providers/oanda.js';
+import { closePosition } from '../providers/capital.js';
 import * as autotrader from '../services/autotrader.js';
 import { clientCount } from '../ws/hub.js';
 
@@ -116,7 +116,7 @@ router.get('/klines-external/:symbol', async (req, res) => {
 });
 
 /* ═══════════════════════════════════════════════════════════════════
-   "Trade for Me" — paper-trading auto-execution via OANDA. Read routes
+   "Trade for Me" — paper-trading auto-execution via Capital.com. Read routes
    are open like everything else above; the POST routes below actually
    control order placement, so they're gated by TRADE_API_SECRET when
    one is configured — the rest of this API has no auth concept, and
@@ -135,17 +135,17 @@ router.get('/trade/status', (_req, res) => {
     data: {
       settings,
       supportedInstruments: autotrader.supportedInstruments(),
-      account: cache.getStale('oanda:account'),
+      account: cache.getStale('capital:account'),
       dailyPl: autotrader.getDailyPl(),
       stats: autotrader.getStats(),
       secretConfigured: !!config.trade.apiSecret,
-      oandaConfigured: !!(config.keys.oanda && config.oanda.accountId)
+      brokerConfigured: !!(config.keys.capital && config.capital.identifier && config.capital.password)
     }
   });
 });
 
 router.get('/trade/positions', (_req, res) => {
-  res.json({ ok: true, data: cache.getStale('oanda:positions') ?? [] });
+  res.json({ ok: true, data: cache.getStale('capital:positions') ?? [] });
 });
 
 router.get('/trade/history', (req, res) => {
@@ -165,8 +165,8 @@ router.post('/trade/kill', requireTradeSecret, (req, res) => {
 });
 
 /** Closes a position outright — a separate explicit action from the kill switch, which only stops new orders. */
-router.post('/trade/close/:instrument', requireTradeSecret, async (req, res) => {
-  const result = await closePosition(req.params.instrument);
+router.post('/trade/close/:dealId', requireTradeSecret, async (req, res) => {
+  const result = await closePosition(req.params.dealId);
   if (!result.ok) return res.status(502).json({ ok: false, error: result.error });
   res.json({ ok: true, data: result.body });
 });

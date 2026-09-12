@@ -10,7 +10,7 @@ import { fetchCalendar } from '../providers/calendar.js';
 import { interpretBatch } from '../services/interpret.js';
 import { computeRisk } from '../services/risk.js';
 import { computeBias } from '../services/bias.js';
-import { refreshOanda, evaluateTrades, refreshClosedTrades } from '../services/autotrader.js';
+import { refreshBroker, evaluateTrades, refreshClosedTrades } from '../services/autotrader.js';
 import { broadcast } from '../ws/hub.js';
 
 /**
@@ -85,14 +85,14 @@ export function recompute() {
 
 export async function startScheduler() {
   log.info('warming cache…');
-  await Promise.allSettled([refreshFast(), refreshDaily(), refreshOanda()]);
+  await Promise.allSettled([refreshFast(), refreshDaily(), refreshBroker()]);
   await refreshSlow();
   log.ok('cache warm');
 
   setInterval(() => refreshFast().catch(e => log.error('fast', e.message)), config.refresh.fast);
   setInterval(() => refreshSlow().catch(e => log.error('slow', e.message)), config.refresh.slow);
   setInterval(() => refreshDaily().catch(e => log.error('daily', e.message)), config.refresh.daily);
-  setInterval(() => refreshOanda().catch(e => log.error('oanda', e.message)), config.refresh.oanda);
-  setInterval(() => refreshClosedTrades().catch(e => log.error('trade-outcomes', e.message)), config.refresh.oanda);
+  setInterval(() => refreshBroker().catch(e => log.error('broker', e.message)), config.refresh.broker);
+  setInterval(() => refreshClosedTrades().catch(e => log.error('trade-outcomes', e.message)), config.refresh.broker);
   setInterval(() => evaluateTrades().catch(e => log.error('trade-eval', e.message)), config.refresh.tradeEval);
 }

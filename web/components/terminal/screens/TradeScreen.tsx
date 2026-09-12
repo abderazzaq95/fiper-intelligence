@@ -7,7 +7,7 @@ import { num, sign, cls } from '@/lib/terminal/format';
 import {
   tradeClient,
   type TradeStatus,
-  type OandaPosition,
+  type BrokerPosition,
   type TradeHistoryEntry,
 } from '@/lib/terminal/tradeClient';
 
@@ -23,7 +23,7 @@ export function TradeScreen({ active }: { active: boolean }) {
   const tt = t.terminal.trade;
 
   const [status, setStatus] = useState<TradeStatus | null>(null);
-  const [positions, setPositions] = useState<OandaPosition[]>([]);
+  const [positions, setPositions] = useState<BrokerPosition[]>([]);
   const [history, setHistory] = useState<TradeHistoryEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -96,8 +96,8 @@ export function TradeScreen({ active }: { active: boolean }) {
     if (res.data) setStatus((s) => (s ? { ...s, settings: res.data! } : s));
   }
 
-  async function doClose(instrument: string) {
-    await tradeClient.closePosition(instrument);
+  async function doClose(dealId: string) {
+    await tradeClient.closePosition(dealId);
     loadAll();
   }
 
@@ -139,7 +139,7 @@ export function TradeScreen({ active }: { active: boolean }) {
         </div>
       </div>
 
-      {status && !status.oandaConfigured && (
+      {status && !status.brokerConfigured && (
         <div className={styles.card} style={{ marginBottom: 14 }}>
           <div className={styles['card-body']}>
             <div className={styles.empty}>{tt.notConfigured}</div>
@@ -168,7 +168,7 @@ export function TradeScreen({ active }: { active: boolean }) {
               )}
 
               <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap', alignItems: 'center' }}>
-                <button type="button" className={styles.btn} disabled={!status.oandaConfigured} onClick={toggleEnabled}>
+                <button type="button" className={styles.btn} disabled={!status.brokerConfigured} onClick={toggleEnabled}>
                   {status.settings.enabled ? tt.disable : tt.enable}
                 </button>
                 {confirmEnable && (
@@ -258,8 +258,8 @@ export function TradeScreen({ active }: { active: boolean }) {
                     <div className={styles['stat-v']}>{num(status.account.balance, 2)}</div>
                   </div>
                   <div className={styles.stat}>
-                    <div className={styles['stat-l']}>{tt.marginUsed}</div>
-                    <div className={styles['stat-v']}>{num(status.account.marginUsed, 2)}</div>
+                    <div className={styles['stat-l']}>{tt.available}</div>
+                    <div className={styles['stat-v']}>{num(status.account.available, 2)}</div>
                   </div>
                   <div className={styles.stat}>
                     <div className={styles['stat-l']}>{tt.unrealizedPl}</div>
@@ -309,7 +309,7 @@ export function TradeScreen({ active }: { active: boolean }) {
               <span className={styles['card-title']}>{tt.positionsTitle}</span>
             </div>
             <div className={styles['card-body']}>
-              {positions.filter((p) => p.longUnits || p.shortUnits).length === 0 ? (
+              {positions.length === 0 ? (
                 <div className={styles.empty}>{tt.noPositions}</div>
               ) : (
                 <table className={styles['bt-table']}>
@@ -323,15 +323,15 @@ export function TradeScreen({ active }: { active: boolean }) {
                     </tr>
                   </thead>
                   <tbody>
-                    {positions.filter((p) => p.longUnits || p.shortUnits).map((p) => {
-                      const long = p.longUnits > 0;
+                    {positions.map((p) => {
+                      const long = p.direction === 'BUY';
                       return (
-                        <tr key={p.instrument}>
-                          <td className={styles.mono}>{p.instrument}</td>
+                        <tr key={p.dealId}>
+                          <td className={styles.mono}>{p.epic}</td>
                           <td><span className={`${styles.pill} ${styles[long ? 'bull' : 'bear']}`}>{long ? tt.long : tt.short}</span></td>
-                          <td className={styles.mono}>{long ? p.longUnits : p.shortUnits}</td>
+                          <td className={styles.mono}>{p.size}</td>
                           <td className={`${styles.mono} ${styles[cls(p.unrealizedPL)]}`}>{sign(p.unrealizedPL)}</td>
-                          <td><button type="button" className={styles.sel} onClick={() => doClose(p.instrument)}>{tt.close}</button></td>
+                          <td><button type="button" className={styles.sel} onClick={() => doClose(p.dealId)}>{tt.close}</button></td>
                         </tr>
                       );
                     })}
@@ -372,7 +372,7 @@ export function TradeScreen({ active }: { active: boolean }) {
                               <span
                                 className={`${styles.pill} ${styles[h.outcome === 'win' ? 'bull' : h.outcome === 'loss' ? 'bear' : 'neutral']}`}
                               >
-                                {h.outcome === 'win' ? tt.outcomeWin : h.outcome === 'loss' ? tt.outcomeLoss : tt.outcomeBreakeven}
+                                {h.outcome === 'win' ? tt.outcomeWin : h.outcome === 'loss' ? tt.outcomeLoss : h.outcome === 'breakeven' ? tt.outcomeBreakeven : tt.outcomeUnknown}
                                 {typeof h.realizedPL === 'number' ? ` ${sign(h.realizedPL)}` : ''}
                               </span>
                             ) : h.tradeId ? (
