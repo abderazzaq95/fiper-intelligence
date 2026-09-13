@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,6 +11,12 @@ function isAllowed(path: string[]) {
 }
 
 export async function POST(request: NextRequest, { params }: RouteContext) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ ok: false, error: 'Authentication required' }, { status: 401 });
+  }
+
   if (!isAllowed(params.path)) {
     return NextResponse.json({ ok: false, error: 'Unsupported trade action' }, { status: 404 });
   }
