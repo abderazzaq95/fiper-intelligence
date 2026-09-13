@@ -43,7 +43,7 @@ export const config = {
     maxOpenPositions:  n(process.env.TRADE_MAX_OPEN_POSITIONS, 3),
     minConfidence:     n(process.env.TRADE_MIN_CONFIDENCE, 40),
     // canonical app symbols (bias.js/cftc.js convention — no underscore), mapped to Capital.com epics in services/autotrader.js
-    allowedInstruments: (process.env.TRADE_ALLOWED_INSTRUMENTS || 'XAUUSD,EURUSD,GBPUSD')
+    allowedInstruments: (process.env.TRADE_ALLOWED_INSTRUMENTS || 'BTCUSD,XAUUSD,EURUSD,GBPUSD')
       .split(',').map(s => s.trim().toUpperCase()).filter(Boolean),
     apiSecret: process.env.TRADE_API_SECRET || null
   },

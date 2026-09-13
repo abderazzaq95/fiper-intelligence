@@ -30,4 +30,4 @@ services:
       - key: TRADE_MIN_CONFIDENCE
         value: "40"
       - key: TRADE_ALLOWED_INSTRUMENTS
-        value: "XAUUSD,EURUSD,GBPUSD"
+        value: "BTCUSD,XAUUSD,EURUSD,GBPUSD"

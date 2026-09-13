@@ -23,6 +23,7 @@ import { broadcast } from '../ws/hub.js';
 const CAPITAL_EPIC = {
   XAUUSD: 'GOLD',
   XAGUSD: 'SILVER',
+  BTCUSD: 'BTCUSD',
   EURUSD: 'EURUSD',
   GBPUSD: 'GBPUSD',
   USDJPY: 'USDJPY',
