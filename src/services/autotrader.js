@@ -64,7 +64,7 @@ export function updateSettings(patch) {
     if (next.enabled) next.killSwitch = null;
   }
   if ('riskPct' in patch) next.riskPct = clamp(Number(patch.riskPct), 0.1, config.trade.maxRiskPct);
-  if ('minConfidence' in patch) next.minConfidence = clamp(Number(patch.minConfidence), 50, 95);
+  if ('minConfidence' in patch) next.minConfidence = clamp(Number(patch.minConfidence), 40, 95);
   if ('allowedInstruments' in patch && Array.isArray(patch.allowedInstruments)) {
     next.allowedInstruments = patch.allowedInstruments.filter(s => CAPITAL_EPIC[s]);
   }
@@ -162,6 +162,37 @@ export function getStats() {
 
 export function supportedInstruments() {
   return Object.keys(CAPITAL_EPIC);
+}
+
+/** One-click, fixed-size BTCUSD smoke test for the configured Capital.com demo account. */
+export async function placeDemoTestOrder(direction = 'BUY') {
+  if (direction !== 'BUY' && direction !== 'SELL') {
+    return { ok: false, error: 'Demo test direction must be BUY or SELL' };
+  }
+
+  const markets = await capital.searchMarkets('Bitcoin');
+  const market = markets.find((row) => {
+    const text = `${row.epic ?? ''} ${row.symbol ?? ''} ${row.instrumentName ?? ''}`.toLowerCase();
+    return text.includes('bitcoin') || text.includes('btcusd');
+  });
+  if (!market?.epic) return { ok: false, error: 'Capital.com returned no Bitcoin market' };
+
+  const price = await capital.fetchMarket(market.epic);
+  if (!price) return { ok: false, error: `No live price for ${market.epic}` };
+
+  const mid = (price.bid + price.offer) / 2;
+  const size = 0.01;
+  const stopLevel = round(direction === 'BUY' ? mid * 0.98 : mid * 1.02);
+  const profitLevel = round(direction === 'BUY' ? mid * 1.02 : mid * 0.98);
+  const result = await capital.placeMarketOrder({ epic: market.epic, direction, size, stopLevel, profitLevel });
+  const tradeId = result.ok ? result.order?.dealId : undefined;
+  logDecision({
+    symbol: 'BTCUSD', instrument: market.epic, action: result.ok ? 'order' : 'error',
+    reason: 'manual demo test order', direction: direction === 'BUY' ? 'Bullish' : 'Bearish',
+    units: direction === 'BUY' ? size : -size, price: mid, stopPrice: stopLevel, targetPrice: profitLevel,
+    tradeId, error: result.ok ? undefined : result.error
+  });
+  return { ok: result.ok, error: result.ok ? undefined : result.error, symbol: 'BTCUSD', epic: market.epic, size, price: mid, stopLevel, profitLevel, order: result.order };
 }
 
 /**

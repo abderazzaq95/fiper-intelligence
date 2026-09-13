@@ -164,6 +164,16 @@ router.post('/trade/kill', requireTradeSecret, (req, res) => {
   res.json({ ok: true, data: next });
 });
 
+router.post('/trade/test-order', requireTradeSecret, async (req, res) => {
+  if (req.body?.confirm !== true) {
+    return res.status(400).json({ ok: false, error: 'Explicit confirmation required' });
+  }
+  const direction = req.body?.direction === 'SELL' ? 'SELL' : 'BUY';
+  const result = await autotrader.placeDemoTestOrder(direction);
+  if (!result.ok) return res.status(502).json({ ok: false, error: result.error });
+  res.json({ ok: true, data: result });
+});
+
 /** Closes a position outright — a separate explicit action from the kill switch, which only stops new orders. */
 router.post('/trade/close/:dealId', requireTradeSecret, async (req, res) => {
   const result = await closePosition(req.params.dealId);

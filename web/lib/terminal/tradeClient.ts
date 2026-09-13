@@ -117,5 +117,6 @@ export const tradeClient = {
   history: (limit = 50) => getJson<TradeHistoryEntry[]>(`/trade/history?limit=${limit}`),
   updateSettings: (patch: Partial<TradeSettings>) => postJson<TradeSettings>('/trade/settings', patch),
   killSwitch: (reason: string) => postJson<TradeSettings>('/trade/kill', { reason }),
+  testOrder: (direction: 'BUY' | 'SELL' = 'BUY') => postJson<unknown>('/trade/test-order', { confirm: true, direction }),
   closePosition: (dealId: string) => postJson<unknown>(`/trade/close/${encodeURIComponent(dealId)}`, {}),
 };

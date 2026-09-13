@@ -28,7 +28,7 @@ export function TradeScreen({ active }: { active: boolean }) {
   const [error, setError] = useState<string | null>(null);
 
   const [riskPct, setRiskPct] = useState(1);
-  const [minConfidence, setMinConfidence] = useState(70);
+  const [minConfidence, setMinConfidence] = useState(40);
   const [selected, setSelected] = useState<string[]>([]);
   const seededRef = useRef(false);
 
@@ -36,6 +36,8 @@ export function TradeScreen({ active }: { active: boolean }) {
   const [confirmKill, setConfirmKill] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedFlash, setSavedFlash] = useState(false);
+  const [testConfirm, setTestConfirm] = useState(false);
+  const [testBusy, setTestBusy] = useState(false);
 
   async function loadAll() {
     const [s, p, h] = await Promise.all([tradeClient.status(), tradeClient.positions(), tradeClient.history(30)]);
@@ -72,6 +74,20 @@ export function TradeScreen({ active }: { active: boolean }) {
     } else {
       setError(res.error ?? 'save failed');
     }
+  }
+
+  async function runDemoTestOrder() {
+    if (!testConfirm) {
+      setTestConfirm(true);
+      return;
+    }
+    setTestConfirm(false);
+    setTestBusy(true);
+    setError(null);
+    const res = await tradeClient.testOrder('BUY');
+    setTestBusy(false);
+    if (res.data) await loadAll();
+    else setError(res.error ?? 'demo test order failed');
   }
 
   async function toggleEnabled() {
@@ -216,7 +232,7 @@ export function TradeScreen({ active }: { active: boolean }) {
                 <div className={styles.fld}>
                   <label className={styles['fld-l']}>{tt.minConfidence}</label>
                   <input
-                    type="number" min={50} max={95} step={1}
+                    type="number" min={40} max={95} step={1}
                     value={minConfidence}
                     onChange={(e) => setMinConfidence(+e.target.value)}
                     style={inputStyle}
@@ -278,6 +294,23 @@ export function TradeScreen({ active }: { active: boolean }) {
             </div>
           </div>
 
+          <div className={styles.card} style={{ marginBottom: 14 }}>
+            <div className={styles['card-head']}>
+              <span className={styles['card-title']}>Demo test order</span>
+            </div>
+            <div className={styles['card-body']}>
+              <div className={styles.warn}>
+                <span>!</span>
+                <span>Demo only: BUY BTCUSD, 0.01 lot, with a 2% stop and target.</span>
+              </div>
+              <div style={{ display: 'flex', gap: 10, marginTop: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+                <button type="button" className={styles.btn} disabled={testBusy || !status.brokerConfigured} onClick={runDemoTestOrder}>
+                  {testBusy ? 'Placing demo test...' : testConfirm ? 'Click again to confirm BTCUSD BUY' : 'Test BTCUSD BUY 0.01'}
+                </button>
+                {testConfirm && <span style={{ fontSize: '.74rem', color: 'var(--amber)' }}>Click again to confirm</span>}
+              </div>
+            </div>
+          </div>
           <div className={styles.card} style={{ marginBottom: 14 }}>
             <div className={styles['card-head']}>
               <span className={styles['card-title']}>{tt.statsTitle}</span>

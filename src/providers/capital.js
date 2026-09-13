@@ -108,6 +108,12 @@ export async function fetchMarket(epic) {
   return { epic, bid: +snap.bid, offer: +snap.offer, at: Date.now() };
 }
 
+/** Search broker markets so callers can resolve an instrument's current epic. */
+export async function searchMarkets(searchTerm) {
+  const data = await authedGet(`/markets?searchTerm=${encodeURIComponent(searchTerm)}`);
+  return Array.isArray(data?.markets) ? data.markets : [];
+}
+
 /** Previous complete daily candle's close, for the same %-change-vs-yesterday purpose oanda.js's fetchPrevClose served. */
 export async function fetchPrevClose(epic) {
   const data = await authedGet(`/prices/${encodeURIComponent(epic)}?resolution=DAY&max=2`);
