@@ -7,12 +7,8 @@
 import { CONFIG } from './config';
 
 /* Only meaningful if the backend is reachable beyond your own machine —
-   for a purely local personal setup TRADE_API_SECRET/this can stay
-   unset. Necessarily public (NEXT_PUBLIC_*) since the browser is the
-   one calling the backend directly, same tradeoff config.js's own
-   comment on TRADE_API_SECRET already documents ("cheap guard", not a
-   real security boundary). */
-const TRADE_SECRET = process.env.NEXT_PUBLIC_TRADE_API_SECRET;
+   authenticated mutations use a same-origin Next.js route, so
+   TRADE_API_SECRET remains server-side and is never bundled. */
 
 export interface TradeSettings {
   enabled: boolean;
@@ -95,11 +91,10 @@ async function getJson<T>(path: string): Promise<Result<T>> {
 
 async function postJson<T>(path: string, body: unknown): Promise<Result<T>> {
   try {
-    const res = await fetch(`${CONFIG.apiBase}/api${path}`, {
+    const res = await fetch(`/api${path}`, {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        ...(TRADE_SECRET ? { 'x-trade-secret': TRADE_SECRET } : {}),
       },
       body: JSON.stringify(body ?? {}),
     });
