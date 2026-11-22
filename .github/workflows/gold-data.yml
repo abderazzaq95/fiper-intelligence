@@ -8,18 +8,11 @@
 
 name: Gold data
 
+# Manual only. Exness's own tick history (scripts/gold/import-exness.js)
+# replaced this feed as the research source, and the automatic runs kept
+# failing against Dukascopy's throttling — each failure emailed the owner.
 on:
   workflow_dispatch:
-  # Pushing a change to the downloader starts a run — no manual click needed
-  push:
-    branches: [main]
-    paths:
-      - scripts/gold/fetch-dukascopy.js
-      - .github/workflows/gold-data.yml
-  schedule:
-    # Every 3 hours: resume an incomplete download one polite job at a time
-    # (a no-op once all months are complete, except refreshing the current one)
-    - cron: '10 */3 * * *'
 
 permissions:
   contents: write
