@@ -15,3 +15,7 @@ data/history/
 data/signals-state.json
 # gold minute history — lives on the data-xauusd branch, pulled with npm run gold:pull
 data/gold/
+
+# Exness tick history (large, local only — never commit)
+Exness_*.zip
+data/exness/

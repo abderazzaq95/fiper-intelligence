@@ -18,7 +18,8 @@
     "replay": "node --use-system-ca scripts/replay.js",
     "gold:pull": "node scripts/gold/pull.js",
     "gold:research": "node --max-old-space-size=4096 scripts/gold/research.js",
-    "gold:lab": "node --max-old-space-size=4096 scripts/gold/lab.js"
+    "gold:lab": "node --max-old-space-size=4096 scripts/gold/lab.js",
+    "gold:import-exness": "node scripts/gold/import-exness.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

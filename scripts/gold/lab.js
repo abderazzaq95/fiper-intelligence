@@ -1,5 +1,5 @@
 /**
- * npm run gold:lab -- --set hp|flip|all [--objective win|t] [AF,SR,...]
+ * npm run gold:lab -- --set hp|flip|core|all [--objective win|t] [AF,SR,...]
  *
  * The XAUUSD strategy lab. Works on whatever minute history has been
  * downloaded so far: the most recent unbroken run of months is split
@@ -16,11 +16,12 @@
  * odds of doubling the account before halving it at 2% and 5% risk.
  */
 import { mkdir, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { loadM1 } from '../../src/signals/gold/m1.js';
 import { buildContext } from '../../src/signals/gold/context.js';
 import { FLIP_STRATEGIES } from '../../src/signals/gold/flip.js';
 import { HP_STRATEGIES } from '../../src/signals/gold/hp.js';
-import { combos } from '../../src/signals/gold/strategies.js';
+import { combos, GOLD_STRATEGIES } from '../../src/signals/gold/strategies.js';
 import { wilsonLower } from '../../src/signals/model.js';
 import { monteCarlo } from '../../src/signals/backtest.js';
 
@@ -29,8 +30,8 @@ const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null
 const SET = opt('--set') || 'all';
 const OBJECTIVE = opt('--objective') || (SET === 'hp' ? 'win' : 't');
 const only = args.find(a => /^[A-Z,]+$/.test(a))?.split(',');
-const POOL = { flip: FLIP_STRATEGIES, hp: HP_STRATEGIES, all: [...HP_STRATEGIES, ...FLIP_STRATEGIES] }[SET];
-if (!POOL) throw new Error(`unknown --set ${SET} (hp | flip | all)`);
+const POOL = { flip: FLIP_STRATEGIES, hp: HP_STRATEGIES, core: GOLD_STRATEGIES, all: [...HP_STRATEGIES, ...FLIP_STRATEGIES, ...GOLD_STRATEGIES] }[SET];
+if (!POOL) throw new Error(`unknown --set ${SET} (hp | flip | core | all)`);
 
 const pct = v => `${(v * 100).toFixed(1)}%`;
 const f2 = v => (Number.isFinite(v) ? v.toFixed(2) : '∞');
@@ -56,7 +57,11 @@ function stats(ts, weeks) {
   };
 }
 
-const m = await loadM1();
+// Exness's own tick history is the ground truth (it is the broker we trade on); Dukascopy is the fallback
+const EXNESS = new URL('../../data/gold/exness-m1/', import.meta.url);
+const SOURCE = opt('--source') || (existsSync(EXNESS) ? 'exness' : 'dukascopy');
+const m = await loadM1(SOURCE === 'exness' ? EXNESS : undefined);
+console.log(`source: ${SOURCE}`);
 const ctx = buildContext(m);
 const days = ctx.d;
 const spanYears = (m.t[m.n - 1] - m.t[0]) / (365.25 * 86400);

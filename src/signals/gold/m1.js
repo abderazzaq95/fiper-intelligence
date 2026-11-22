@@ -7,17 +7,25 @@ import { gunzipSync } from 'node:zlib';
  * ask ≈ bid + sp. Float32 keeps gold's 3 decimals exact enough (error
  * < 0.001 at $4,000) while halving memory.
  */
-export async function loadM1(dir = new URL('../../../data/gold/m1/', import.meta.url), { contiguous = true } = {}) {
+export async function loadM1(dir = new URL('../../../data/gold/m1/', import.meta.url), { span = 'longest' } = {}) {
   let files = (await readdir(dir)).filter(f => f.endsWith('.csv.gz')).sort();
   if (!files.length) throw new Error(`no gold data in ${dir} — run: npm run gold:pull`);
-  // While the download is still filling in, history has holes. A gap
-  // inside the series would corrupt prior-day levels and the time split,
-  // so by default only the most recent unbroken run of months is used.
-  if (contiguous) {
+  // History can have holes (downloads in progress, truncated exports). A
+  // gap inside the series corrupts prior-day levels and the time split,
+  // so only one unbroken run of months is used: the longest by default,
+  // or the most recent with span: 'recent'. Near-empty months (< 2,000
+  // minutes, e.g. a cut-off export's last day) count as gaps.
+  if (span !== 'all') {
+    const { stat } = await import('node:fs/promises');
+    const sizes = await Promise.all(files.map(f => stat(new URL(f, dir)).then(s => s.size)));
     const idx = f => { const [y, mo] = f.slice(0, 7).split('-').map(Number); return y * 12 + mo; };
-    let start = files.length - 1;
-    while (start > 0 && idx(files[start]) - idx(files[start - 1]) === 1) start--;
-    files = files.slice(start);
+    const ok = files.filter((f, i) => sizes[i] > 30_000); // ~2,000 gzipped minute rows
+    const runs = [];
+    for (const f of ok) {
+      const last = runs.at(-1);
+      if (last && idx(f) - idx(last.at(-1)) === 1) last.push(f); else runs.push([f]);
+    }
+    files = span === 'recent' ? runs.at(-1) : runs.reduce((a, b) => (b.length >= a.length ? b : a));
   }
   const chunks = [];
   let n = 0;
