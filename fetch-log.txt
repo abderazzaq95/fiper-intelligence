@@ -82,3 +82,5 @@
   skip 2023/06/24/BID_candles_min_1.bi5: fetch failed
 2023-07: 19432 min bars, median 1958.99, spread median 0.330 p95 0.414, 8 day(s) still missing
 2023-06: 30075 min bars, median 1946.99, spread median 0.337 p95 0.424
+2023-05: 31583 min bars, median 1984.69, spread median 0.330 p95 0.431
+2023-04: 26328 min bars, median 1998.51, spread median 0.340 p95 0.437
