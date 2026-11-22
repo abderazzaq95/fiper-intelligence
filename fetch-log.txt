@@ -2,3 +2,6 @@
 2026-10: 30240 min bars, median 4134.47, spread median 0.557 p95 0.790
 2026-09: 30208 min bars, median 4339.86, spread median 0.666 p95 0.850
 2026-08: 29100 min bars, median 4398.08, spread median 0.630 p95 0.840
+  skip 2026/06/06/BID_candles_min_1.bi5: The operation was aborted due to timeout
+2026-07: 29999 min bars, median 4062.87, spread median 0.680 p95 0.880, 1 day(s) still missing
+2026-06: 30119 min bars, median 4224.86, spread median 0.620 p95 0.817
