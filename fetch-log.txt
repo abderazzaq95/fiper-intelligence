@@ -46,3 +46,7 @@
 2024-11: 28572 min bars, median 2648.94, spread median 0.400 p95 0.467
   skip 2024/09/04/BID_candles_min_1.bi5: fetch failed
 2024-10: 30411 min bars, median 2678.48, spread median 0.397 p95 0.460, 1 day(s) still missing
+2024-09: 28945 min bars, median 2570.93, spread median 0.397 p95 0.467
+  skip 2024/07/02/BID_candles_min_1.bi5: fetch failed
+  skip 2024/07/04/BID_candles_min_1.bi5: fetch failed
+2024-08: 28860 min bars, median 2474.39, spread median 0.397 p95 0.460, 2 day(s) still missing
