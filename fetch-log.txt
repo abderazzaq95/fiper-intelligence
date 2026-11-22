@@ -72,3 +72,13 @@
   skip 2023/08/03/BID_candles_min_1.bi5: HTTP 503
 2023-09: 28538 min bars, median 1922.42, spread median 0.297 p95 0.367, 1 day(s) still missing
 2023-08: 31674 min bars, median 1917.84, spread median 0.310 p95 0.381
+  skip 2023/06/03/ASK_candles_min_1.bi5: fetch failed
+  skip 2023/06/04/ASK_candles_min_1.bi5: fetch failed
+  skip 2023/06/11/BID_candles_min_1.bi5: fetch failed
+  skip 2023/06/13/BID_candles_min_1.bi5: HTTP 503
+  skip 2023/06/14/ASK_candles_min_1.bi5: fetch failed
+  skip 2023/06/16/BID_candles_min_1.bi5: HTTP 503
+  skip 2023/06/17/ASK_candles_min_1.bi5: fetch failed
+  skip 2023/06/24/BID_candles_min_1.bi5: fetch failed
+2023-07: 19432 min bars, median 1958.99, spread median 0.330 p95 0.414, 8 day(s) still missing
+2023-06: 30075 min bars, median 1946.99, spread median 0.337 p95 0.424
