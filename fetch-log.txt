@@ -90,3 +90,5 @@
   skip 2023/00/20/BID_candles_min_1.bi5: fetch failed
 2023-01: 27474 min bars, median 1908.46, spread median 0.337 p95 0.418, 1 day(s) still missing
 2022-12: 28907 min bars, median 1796.38, spread median 0.360 p95 0.495
+2022-11: 29935 min bars, median 1747.53, spread median 0.424 p95 0.525
+2022-10: 29082 min bars, median 1662.87, spread median 0.394 p95 0.504
