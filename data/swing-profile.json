@@ -1,0 +1,458 @@
+{
+ "generatedAt": 1795345079514,
+ "instruments": {
+  "USTEC": {
+   "key": "USTEC",
+   "playbook": "swing",
+   "enabled": true,
+   "reason": "positive expectancy in development AND holdout",
+   "rules": {
+    "trendLen": 200,
+    "rsiLen": 2,
+    "rsiEntry": 10,
+    "exitLen": 5,
+    "maxDays": 10,
+    "stopAtr": 3
+   },
+   "costs": {
+    "spreadPct": 0.00025,
+    "swapPerNightPct": 0.0002
+   },
+   "development": {
+    "n": 147,
+    "wins": 98,
+    "winRate": 0.6666666666666666,
+    "winRateLow95": 0.5870727007499073,
+    "expectancyR": 0.07260988068841122,
+    "avgReturnPct": 0.3053207265581762,
+    "profitFactor": 1.5462451879222017,
+    "stopOuts": 14,
+    "avgNights": 2.6054421768707483,
+    "maxDrawdownR": 3.346996427719427,
+    "worstR": -1.0494511460776605
+   },
+   "holdout": {
+    "n": 63,
+    "wins": 44,
+    "winRate": 0.6984126984126984,
+    "winRateLow95": 0.5763939457458815,
+    "expectancyR": 0.08937014508145258,
+    "avgReturnPct": 0.38474219427762757,
+    "profitFactor": 1.768047932182666,
+    "stopOuts": 5,
+    "avgNights": 2.365079365079365,
+    "maxDrawdownR": 2.1884253171068524,
+    "worstR": -1.016661013726
+   },
+   "all": {
+    "n": 210,
+    "wins": 142,
+    "winRate": 0.6761904761904762,
+    "winRateLow95": 0.6102278655879068,
+    "expectancyR": 0.07763796000632363,
+    "avgReturnPct": 0.3291471668740114,
+    "profitFactor": 1.606755890331016,
+    "stopOuts": 19,
+    "avgNights": 2.533333333333333,
+    "maxDrawdownR": 3.754010671539442,
+    "worstR": -1.0494511460776605
+   },
+   "buckets": [
+    {
+     "rsiFrom": 0,
+     "rsiTo": 3,
+     "n": 12,
+     "winRate": 0.75,
+     "winRateLow95": 0.4676896608793401
+    },
+    {
+     "rsiFrom": 3,
+     "rsiTo": 6,
+     "n": 67,
+     "winRate": 0.6268656716417911,
+     "winRateLow95": 0.5071518645751268
+    },
+    {
+     "rsiFrom": 6,
+     "rsiTo": 10,
+     "n": 131,
+     "winRate": 0.6946564885496184,
+     "winRateLow95": 0.6111769763005396
+    }
+   ],
+   "signalsPerMonth": 0.69,
+   "flip": {
+    "riskPct": 2,
+    "pDoubleFirst": 0.34375,
+    "pHalveFirst": 0,
+    "medianTradesToDouble": 350
+   },
+   "flipAggressive": {
+    "riskPct": 5,
+    "pDoubleFirst": 0.97625,
+    "pHalveFirst": 0.00025,
+    "medianTradesToDouble": 175
+   },
+   "split": {
+    "holdoutFrom": 1575349200000
+   },
+   "bars": {
+    "from": 969249600000,
+    "to": 1795150800000,
+    "count": 6610
+   },
+   "recent": [
+    {
+     "date": "2026-03-12",
+     "how": "TARGET",
+     "R": 0.14,
+     "retPct": 0.87
+    },
+    {
+     "date": "2026-06-05",
+     "how": "TARGET",
+     "R": 0.36,
+     "retPct": 2.07
+    },
+    {
+     "date": "2026-07-17",
+     "how": "TARGET",
+     "R": 0.26,
+     "retPct": 1.93
+    },
+    {
+     "date": "2026-07-24",
+     "how": "TARGET",
+     "R": -0.14,
+     "retPct": -1.01
+    },
+    {
+     "date": "2026-08-18",
+     "how": "TARGET",
+     "R": -0.18,
+     "retPct": -1.06
+    },
+    {
+     "date": "2026-09-10",
+     "how": "TARGET",
+     "R": 0.21,
+     "retPct": 0.94
+    },
+    {
+     "date": "2026-10-14",
+     "how": "TARGET",
+     "R": -0.13,
+     "retPct": -0.59
+    },
+    {
+     "date": "2026-10-30",
+     "how": "STOP",
+     "R": -1.01,
+     "retPct": -6.6
+    }
+   ]
+  },
+  "XAUUSD": {
+   "key": "XAUUSD",
+   "playbook": "swing",
+   "enabled": false,
+   "reason": "edge did not hold in both periods",
+   "rules": {
+    "trendLen": 200,
+    "rsiLen": 2,
+    "rsiEntry": 10,
+    "exitLen": 5,
+    "maxDays": 10,
+    "stopAtr": 3
+   },
+   "costs": {
+    "spreadPct": 0.00025,
+    "swapPerNightPct": 0.0002
+   },
+   "development": {
+    "n": 123,
+    "wins": 75,
+    "winRate": 0.6097560975609756,
+    "winRateLow95": 0.5214740057306497,
+    "expectancyR": 0.010330335787026563,
+    "avgReturnPct": 0.10630031930182875,
+    "profitFactor": 1.058275978673003,
+    "stopOuts": 14,
+    "avgNights": 2.959349593495935,
+    "maxDrawdownR": 3.9972273444559323,
+    "worstR": -1.1040902758979423
+   },
+   "holdout": {
+    "n": 54,
+    "wins": 35,
+    "winRate": 0.6481481481481481,
+    "winRateLow95": 0.5148458381779774,
+    "expectancyR": -0.017133196667304708,
+    "avgReturnPct": 0.014063494357508043,
+    "profitFactor": 0.9025906853710451,
+    "stopOuts": 6,
+    "avgNights": 3,
+    "maxDrawdownR": 4.208525060463108,
+    "worstR": -1.0307631158497854
+   },
+   "all": {
+    "n": 177,
+    "wins": 110,
+    "winRate": 0.6214689265536724,
+    "winRateLow95": 0.5481499669837261,
+    "expectancyR": 0.0019516309704509212,
+    "avgReturnPct": 0.07816027101373096,
+    "profitFactor": 1.0110357879822793,
+    "stopOuts": 20,
+    "avgNights": 2.9717514124293785,
+    "maxDrawdownR": 6.058644057769499,
+    "worstR": -1.1040902758979423
+   },
+   "buckets": [
+    {
+     "rsiFrom": 0,
+     "rsiTo": 3,
+     "n": 12,
+     "winRate": 0.8333333333333334,
+     "winRateLow95": 0.5519636426153274
+    },
+    {
+     "rsiFrom": 3,
+     "rsiTo": 6,
+     "n": 58,
+     "winRate": 0.6206896551724138,
+     "winRateLow95": 0.49202571736165573
+    },
+    {
+     "rsiFrom": 6,
+     "rsiTo": 10,
+     "n": 107,
+     "winRate": 0.5981308411214953,
+     "winRateLow95": 0.5033928464055272
+    }
+   ],
+   "signalsPerMonth": 0.58,
+   "flip": {
+    "riskPct": 2,
+    "pDoubleFirst": 0,
+    "pHalveFirst": 0.00025,
+    "medianTradesToDouble": null
+   },
+   "flipAggressive": {
+    "riskPct": 5,
+    "pDoubleFirst": 0.101,
+    "pHalveFirst": 0.16725,
+    "medianTradesToDouble": 264
+   },
+   "split": {
+    "holdoutFrom": 1524456000000
+   },
+   "bars": {
+    "from": 967608000000,
+    "to": 1795150800000,
+    "count": 6583
+   },
+   "recent": [
+    {
+     "date": "2025-07-28",
+     "how": "TARGET",
+     "R": 0.54,
+     "retPct": 2.52
+    },
+    {
+     "date": "2025-08-19",
+     "how": "TARGET",
+     "R": 0.19,
+     "retPct": 0.83
+    },
+    {
+     "date": "2026-02-02",
+     "how": "TARGET",
+     "R": 0.4,
+     "retPct": 5.49
+    },
+    {
+     "date": "2026-03-16",
+     "how": "STOP",
+     "R": -1.01,
+     "retPct": -9.51
+    },
+    {
+     "date": "2026-03-20",
+     "how": "TARGET",
+     "R": 0.19,
+     "retPct": 2.23
+    },
+    {
+     "date": "2026-04-28",
+     "how": "TARGET",
+     "R": 0.07,
+     "retPct": 0.65
+    },
+    {
+     "date": "2026-05-15",
+     "how": "TARGET",
+     "R": -0.03,
+     "retPct": -0.2
+    },
+    {
+     "date": "2026-05-27",
+     "how": "TARGET",
+     "R": 0.41,
+     "retPct": 3.09
+    }
+   ]
+  },
+  "BTCUSD": {
+   "key": "BTCUSD",
+   "playbook": "swing",
+   "enabled": false,
+   "reason": "edge did not hold in both periods",
+   "rules": {
+    "trendLen": 200,
+    "rsiLen": 2,
+    "rsiEntry": 10,
+    "exitLen": 5,
+    "maxDays": 10,
+    "stopAtr": 3
+   },
+   "costs": {
+    "spreadPct": 0.0008,
+    "swapPerNightPct": 0.0006
+   },
+   "development": {
+    "n": 51,
+    "wins": 38,
+    "winRate": 0.7450980392156863,
+    "winRateLow95": 0.6113145589385129,
+    "expectancyR": 0.03545100331105895,
+    "avgReturnPct": 0.5807388796389441,
+    "profitFactor": 1.289450763427262,
+    "stopOuts": 5,
+    "avgNights": 2.607843137254902,
+    "maxDrawdownR": 2.919024721193913,
+    "worstR": -1.0358323532941152
+   },
+   "holdout": {
+    "n": 23,
+    "wins": 15,
+    "winRate": 0.6521739130434783,
+    "winRateLow95": 0.4488997690689163,
+    "expectancyR": -0.02742708857901419,
+    "avgReturnPct": -0.19141062029160585,
+    "profitFactor": 0.8244850532378313,
+    "stopOuts": 3,
+    "avgNights": 2.739130434782609,
+    "maxDrawdownR": 2.613238767893723,
+    "worstR": -1.0406316943211569
+   },
+   "all": {
+    "n": 74,
+    "wins": 53,
+    "winRate": 0.7162162162162162,
+    "winRateLow95": 0.6048253064036954,
+    "expectancyR": 0.015907812588468642,
+    "avgReturnPct": 0.3407464674983678,
+    "profitFactor": 1.1196265265248364,
+    "stopOuts": 8,
+    "avgNights": 2.6486486486486487,
+    "maxDrawdownR": 2.919024721193913,
+    "worstR": -1.0406316943211569
+   },
+   "buckets": [
+    {
+     "rsiFrom": 0,
+     "rsiTo": 3,
+     "n": 6,
+     "winRate": 0.5,
+     "winRateLow95": 0.1876128068994087
+    },
+    {
+     "rsiFrom": 3,
+     "rsiTo": 6,
+     "n": 24,
+     "winRate": 0.5833333333333334,
+     "winRateLow95": 0.3883433764938864
+    },
+    {
+     "rsiFrom": 6,
+     "rsiTo": 10,
+     "n": 44,
+     "winRate": 0.8181818181818182,
+     "winRateLow95": 0.6803916324485767
+    }
+   ],
+   "signalsPerMonth": 0.71,
+   "flip": {
+    "riskPct": 2,
+    "pDoubleFirst": 0,
+    "pHalveFirst": 0.00025,
+    "medianTradesToDouble": null
+   },
+   "flipAggressive": {
+    "riskPct": 5,
+    "pDoubleFirst": 0.21375,
+    "pHalveFirst": 0.033,
+    "medianTradesToDouble": 288
+   },
+   "split": {
+    "holdoutFrom": 1714262400000
+   },
+   "bars": {
+    "from": 1502928000000,
+    "to": 1795219200000,
+    "count": 3384
+   },
+   "recent": [
+    {
+     "date": "2025-08-18",
+     "how": "TARGET",
+     "R": 0.05,
+     "retPct": 0.35
+    },
+    {
+     "date": "2025-09-22",
+     "how": "TARGET",
+     "R": -0.14,
+     "retPct": -0.81
+    },
+    {
+     "date": "2025-10-10",
+     "how": "TARGET",
+     "R": 0.17,
+     "retPct": 1.92
+    },
+    {
+     "date": "2025-10-16",
+     "how": "TARGET",
+     "R": 0.02,
+     "retPct": 0.21
+    },
+    {
+     "date": "2026-09-10",
+     "how": "TARGET",
+     "R": 0.21,
+     "retPct": 1.86
+    },
+    {
+     "date": "2026-10-07",
+     "how": "TARGET",
+     "R": 0.04,
+     "retPct": 0.28
+    },
+    {
+     "date": "2026-10-25",
+     "how": "TARGET",
+     "R": 0.1,
+     "retPct": 0.8
+    },
+    {
+     "date": "2026-10-30",
+     "how": "TARGET",
+     "R": 0.45,
+     "retPct": 3.73
+    }
+   ]
+  }
+ }
+}

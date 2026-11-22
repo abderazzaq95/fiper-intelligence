@@ -45,6 +45,10 @@ router.get('/markets',  (_q, r) => {
   r.json({ ok: true, data: [...quotes, ...crypto], counts: { quotes: quotes.length, crypto: crypto.length } });
 });
 
+router.get('/signals', async (_q, r) => {
+  const { signalsStatus } = await import('../signals/scanner.js');
+  r.json({ ok: true, ...(await signalsStatus()) });
+});
 router.get('/crypto',   (_q, r) => serve(r, 'crypto'));
 router.get('/quotes',   (_q, r) => serve(r, 'quotes'));
 router.get('/fx',       (_q, r) => serve(r, 'fx'));

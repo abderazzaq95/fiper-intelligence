@@ -9,3 +9,7 @@ web/.next/
 web/out/
 web/next-env.d.ts
 web/tsconfig.tsbuildinfo
+
+# signal engine: cached price history and live state (profiles + reports are committed)
+data/history/
+data/signals-state.json
