@@ -1,15 +1,51 @@
-file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:40
-      if (attempt === 3) throw new Error(`${url}: ${e.message}`);
-                               ^
+skip 2016/00/01/BID_candles_min_1.bi5: fetch failed
+skip 2016/00/02/BID_candles_min_1.bi5: fetch failed
+skip 2016/00/02/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/00/01/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/00/04/BID_candles_min_1.bi5: fetch failed
+skip 2016/00/04/ASK_candles_min_1.bi5: HTTP 503
+2016-01: 3 day(s) failed — not saved, will retry next run
+skip 2016/01/03/BID_candles_min_1.bi5: HTTP 503
+2016-02: 1 day(s) failed — not saved, will retry next run
+2016-03: 30420 min bars, median 1244.69, spread median 0.330 p95 0.406
+skip 2016/03/29/ASK_candles_min_1.bi5: fetch failed
+2016-04: 1 day(s) failed — not saved, will retry next run
+2016-05: 30236 min bars, median 1268.20, spread median 0.337 p95 0.406
+2016-06: 30356 min bars, median 1279.32, spread median 0.340 p95 0.442
+skip 2016/06/24/ASK_candles_min_1.bi5: fetch failed
+2016-07: 1 day(s) failed — not saved, will retry next run
+skip 2016/07/03/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/07/04/BID_candles_min_1.bi5: HTTP 503
+skip 2016/07/04/ASK_candles_min_1.bi5: fetch failed
+skip 2016/07/05/ASK_candles_min_1.bi5: fetch failed
+skip 2016/07/14/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/07/15/ASK_candles_min_1.bi5: fetch failed
+skip 2016/07/27/ASK_candles_min_1.bi5: HTTP 503
+2016-08: 6 day(s) failed — not saved, will retry next run
+2016-09: 30000 min bars, median 1325.45, spread median 0.292 p95 0.380
+2016-10: 29095 min bars, median 1265.44, spread median 0.282 p95 0.366
+2016-11: 29851 min bars, median 1225.74, spread median 0.282 p95 0.396
+skip 2016/11/02/BID_candles_min_1.bi5: fetch failed
+2016-12: 1 day(s) failed — not saved, will retry next run
+skip 2017/00/02/BID_candles_min_1.bi5: fetch failed
+skip 2017/00/02/ASK_candles_min_1.bi5: fetch failed
+2017-01: 1 day(s) failed — not saved, will retry next run
+skip 2017/01/01/BID_candles_min_1.bi5: The operation was aborted due to timeout
+skip 2017/01/03/BID_candles_min_1.bi5: fetch failed
+skip 2017/01/04/BID_candles_min_1.bi5: fetch failed
+skip 2017/01/03/ASK_candles_min_1.bi5: fetch failed
+skip 2017/01/04/ASK_candles_min_1.bi5: fetch failed
+file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:51
+        if (++consecutiveFailures >= 5) throw new Error(`feed unavailable (5 files failed in a row, last: ${url}: ${e.message})`);
+                                              ^
 
-Error: https://datafeed.dukascopy.com/datafeed/XAUUSD/2016/00/04/BID_candles_min_1.bi5: HTTP 503
-    at download (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:40:32)
+Error: feed unavailable (5 files failed in a row, last: https://datafeed.dukascopy.com/datafeed/XAUUSD/2017/01/05/BID_candles_min_1.bi5: HTTP 503)
+    at download (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:51:47)
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async fetchDay (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:84:15)
+    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:105:65
     at async Promise.all (index 0)
-    at async fetchDay (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:70:22)
-    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:89:65
-    at async Promise.all (index 3)
-    at async fetchMonth (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:88:3)
-    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:104:18
+    at async fetchMonth (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:104:3)
+    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:121:18
 
 Node.js v24.22.3
