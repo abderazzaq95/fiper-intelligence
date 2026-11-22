@@ -17,7 +17,9 @@ on:
       - scripts/gold/fetch-dukascopy.js
       - .github/workflows/gold-data.yml
   schedule:
-    - cron: '10 2 * * 6'   # Saturdays 02:10 UTC, after the weekly close
+    # Every 3 hours: resume an incomplete download one polite job at a time
+    # (a no-op once all months are complete, except refreshing the current one)
+    - cron: '10 */3 * * *'
 
 permissions:
   contents: write
@@ -54,7 +56,7 @@ jobs:
       - name: Download missing months
         run: |
           set -o pipefail
-          node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016 --commit-every 6 2>&1 | tee /tmp/gold/fetch-log.txt
+          node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016 --commit-every 2 2>&1 | tee /tmp/gold/fetch-log.txt
 
       - name: Commit and push
         if: always()
