@@ -87,3 +87,6 @@
   skip 2023/02/20/BID_candles_min_1.bi5: The operation was aborted due to timeout
 2023-03: 30295 min bars, median 1917.86, spread median 0.337 p95 0.420, 1 day(s) still missing
 2023-02: 27443 min bars, median 1852.18, spread median 0.340 p95 0.417
+  skip 2023/00/20/BID_candles_min_1.bi5: fetch failed
+2023-01: 27474 min bars, median 1908.46, spread median 0.337 p95 0.418, 1 day(s) still missing
+2022-12: 28907 min bars, median 1796.38, spread median 0.360 p95 0.495
