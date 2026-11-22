@@ -69,3 +69,6 @@
   skip 2023/10/05/BID_candles_min_1.bi5: HTTP 503
 2023-11: 29764 min bars, median 1984.00, spread median 0.310 p95 0.370, 1 day(s) still missing
 2023-10: 30464 min bars, median 1921.21, spread median 0.310 p95 0.390
+  skip 2023/08/03/BID_candles_min_1.bi5: HTTP 503
+2023-09: 28538 min bars, median 1922.42, spread median 0.297 p95 0.367, 1 day(s) still missing
+2023-08: 31674 min bars, median 1917.84, spread median 0.310 p95 0.381
