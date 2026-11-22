@@ -94,3 +94,6 @@
 2022-10: 29082 min bars, median 1662.87, spread median 0.394 p95 0.504
 2022-09: 30089 min bars, median 1676.13, spread median 0.337 p95 0.440
 2022-08: 31734 min bars, median 1766.68, spread median 0.348 p95 0.464
+2022-07: 28827 min bars, median 1729.71, spread median 0.358 p95 0.468
+  skip 2022/05/02/ASK_candles_min_1.bi5: fetch failed
+  skip 2022/05/07/ASK_candles_min_1.bi5: HTTP 503
