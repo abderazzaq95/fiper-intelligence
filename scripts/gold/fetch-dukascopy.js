@@ -21,24 +21,38 @@ import { gzipSync } from 'node:zlib';
 const OUT = process.argv[2] || 'data/gold/m1';
 const FROM_YEAR = Number(process.argv[3] || new Date().getUTCFullYear() - 10);
 const BASE = 'https://datafeed.dukascopy.com/datafeed/XAUUSD';
-const CONCURRENCY = 6;      // polite: a public free feed, not a paid API
+// Dukascopy answers 503 to bursts — 2 parallel days (4 files) with a pause is what it tolerates
+const CONCURRENCY = 2;
+const PAUSE_MS = 150;
 const DIVISOR = 1000;       // XAUUSD is quoted to 3 decimals in the feed
 const DAY = 86400_000;
 
 const pad = n => String(n).padStart(2, '0');
+const missingDays = [];
 const exists = p => access(p).then(() => true, () => false);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36';
+let consecutiveFailures = 0;
+
 async function download(url) {
-  for (let attempt = 0; attempt < 4; attempt++) {
+  const ATTEMPTS = 7;
+  for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
+    await sleep(PAUSE_MS);
     try {
-      const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(30_000) });
-      if (res.status === 404) return null;
+      const res = await fetch(url, { headers: { 'User-Agent': UA, Accept: '*/*' }, signal: AbortSignal.timeout(30_000) });
+      if (res.status === 404) { consecutiveFailures = 0; return null; }
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      consecutiveFailures = 0;
       return Buffer.from(await res.arrayBuffer());
     } catch (e) {
-      if (attempt === 3) throw new Error(`${url}: ${e.message}`);
-      await sleep(1000 * 2 ** attempt);
+      if (attempt === ATTEMPTS - 1) {
+        // One stubborn file should not sink ten years of data — but a feed that is down for everything should stop the run
+        if (++consecutiveFailures >= 5) throw new Error(`feed unavailable (5 files failed in a row, last: ${url}: ${e.message})`);
+        console.warn(`skip ${url.split('XAUUSD/')[1]}: ${e.message}`);
+        return undefined;
+      }
+      await sleep(Math.min(30_000, 2000 * 2 ** attempt)); // 2s, 4s, … capped at 30s
     }
   }
 }
@@ -67,7 +81,9 @@ async function fetchDay(date) {
   const y = date.getUTCFullYear(), m = date.getUTCMonth(), dd = date.getUTCDate();
   const path = `${BASE}/${y}/${pad(m)}/${pad(dd)}`; // month is 0-based in the feed
   const start = Date.UTC(y, m, dd) / 1000;
-  const [bid, ask] = await Promise.all([download(`${path}/BID_candles_min_1.bi5`), download(`${path}/ASK_candles_min_1.bi5`)]);
+  const bid = await download(`${path}/BID_candles_min_1.bi5`);
+  const ask = bid === null ? null : await download(`${path}/ASK_candles_min_1.bi5`);
+  if (bid === undefined || ask === undefined) { missingDays.push(`${y}-${pad(m + 1)}-${pad(dd)}`); return []; }
   const b = parseCandles(bid, start), a = parseCandles(ask, start);
   const askByT = new Map(a.map(k => [k.t, k]));
   const rows = [];
@@ -101,8 +117,11 @@ for (let y = FROM_YEAR; y <= now.getUTCFullYear(); y++) {
     const isCurrent = y === now.getUTCFullYear() && m === now.getUTCMonth();
     // Finished months never change — only the current one is re-fetched
     if (!isCurrent && await exists(file)) continue;
+    const missBefore = missingDays.length;
     const rows = await fetchMonth(y, m);
     if (!rows.length) { console.log(`${y}-${pad(m + 1)}: no data`); continue; }
+    // A month with holes is not saved, so the next run fetches it again whole
+    if (missingDays.length > missBefore) { console.log(`${y}-${pad(m + 1)}: ${missingDays.length - missBefore} day(s) failed — not saved, will retry next run`); continue; }
     const mids = rows.map(r => { const p = r.split(','); return (+p[4] + +p[8]) / 2; }).sort((a, b) => a - b);
     const spreads = rows.map(r => { const p = r.split(','); return +p[8] - +p[4]; }).sort((a, b) => a - b);
     const med = mids[mids.length >> 1];
@@ -114,4 +133,4 @@ for (let y = FROM_YEAR; y <= now.getUTCFullYear(); y++) {
     summary.push(line);
   }
 }
-console.log(`\ndone — ${summary.length} month file(s) written to ${OUT}`);
+console.log(`\ndone — ${summary.length} month file(s) written to ${OUT}${missingDays.length ? `; ${missingDays.length} day(s) failed and will be retried` : ''}`);
