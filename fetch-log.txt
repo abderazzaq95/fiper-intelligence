@@ -19,3 +19,7 @@
 2025-12: 30062 min bars, median 4310.21, spread median 0.630 p95 0.994
 2025-11: 27358 min bars, median 4080.39, spread median 0.610 p95 0.820
 2025-10: 31620 min bars, median 4033.78, spread median 0.650 p95 1.020
+  skip 2025/08/04/BID_candles_min_1.bi5: fetch failed
+  skip 2025/08/05/BID_candles_min_1.bi5: fetch failed
+2025-09: 27569 min bars, median 3660.78, spread median 0.560 p95 0.767, 2 day(s) still missing
+2025-08: 28971 min bars, median 3361.15, spread median 0.527 p95 0.780
