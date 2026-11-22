@@ -1,0 +1,120 @@
+{
+ "generatedAt": 1795345103908,
+ "minWinRate": 0.6,
+ "instruments": {
+  "XAUUSD": {
+   "key": "XAUUSD",
+   "enabled": false,
+   "reason": "no setting met validation criteria",
+   "bestSeen": null,
+   "baselines": {
+    "TPB": {
+     "n": 119,
+     "winRate": 0.437,
+     "expectancyR": -0.064
+    },
+    "SWP": {
+     "n": 90,
+     "winRate": 0.5,
+     "expectancyR": -0.01
+    },
+    "MR": {
+     "n": 43,
+     "winRate": 0.465,
+     "expectancyR": -0.079
+    },
+    "BRK": {
+     "n": 53,
+     "winRate": 0.566,
+     "expectancyR": 0.116
+    },
+    "SQZ": {
+     "n": 53,
+     "winRate": 0.491,
+     "expectancyR": -0.032
+    },
+    "ORB": {
+     "n": 30,
+     "winRate": 0.433,
+     "expectancyR": -0.02
+    }
+   }
+  },
+  "USTEC": {
+   "key": "USTEC",
+   "enabled": false,
+   "reason": "no setting met validation criteria",
+   "bestSeen": null,
+   "baselines": {
+    "TPB": {
+     "n": 96,
+     "winRate": 0.458,
+     "expectancyR": -0.03
+    },
+    "SWP": {
+     "n": 81,
+     "winRate": 0.395,
+     "expectancyR": -0.249
+    },
+    "MR": {
+     "n": 52,
+     "winRate": 0.442,
+     "expectancyR": -0.124
+    },
+    "BRK": {
+     "n": 69,
+     "winRate": 0.536,
+     "expectancyR": 0.036
+    },
+    "SQZ": {
+     "n": 56,
+     "winRate": 0.571,
+     "expectancyR": 0.125
+    },
+    "ORB": {
+     "n": 84,
+     "winRate": 0.488,
+     "expectancyR": -0.005
+    }
+   }
+  },
+  "BTCUSD": {
+   "key": "BTCUSD",
+   "enabled": false,
+   "reason": "no setting met validation criteria",
+   "bestSeen": null,
+   "baselines": {
+    "TPB": {
+     "n": 317,
+     "winRate": 0.476,
+     "expectancyR": -0.02
+    },
+    "SWP": {
+     "n": 228,
+     "winRate": 0.482,
+     "expectancyR": -0.095
+    },
+    "MR": {
+     "n": 106,
+     "winRate": 0.538,
+     "expectancyR": 0.023
+    },
+    "BRK": {
+     "n": 94,
+     "winRate": 0.5,
+     "expectancyR": -0.057
+    },
+    "SQZ": {
+     "n": 102,
+     "winRate": 0.49,
+     "expectancyR": -0.093
+    },
+    "ORB": {
+     "n": 104,
+     "winRate": 0.442,
+     "expectancyR": -0.054
+    }
+   }
+  }
+ }
+}

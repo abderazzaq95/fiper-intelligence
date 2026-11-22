@@ -1,0 +1,104 @@
+# Runs the signal scanner on GitHub's servers so Telegram alerts arrive
+# 24/7 without a PC or a paid host.
+#
+# Hourly is plenty: the live playbook trades daily bars, so an alert
+# within the hour after the close is on time. (Private repos get 2,000
+# free Action minutes a month; hourly uses roughly 720.)
+#
+# State — open trades and the live win/loss record — lives on the
+# `signals-state` branch, not in the job, because every Actions run
+# starts on a fresh machine. Weekly research also writes its refreshed
+# profiles there, and scans prefer those over the copies on main.
+#
+# Needs repository secrets TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.
+# Scheduled runs only fire on the default branch.
+
+name: Signals
+
+on:
+  schedule:
+    - cron: '17 * * * *'   # scan hourly (off the top of the hour — GitHub delays :00 runs)
+    - cron: '40 3 * * 0'   # research, Sundays 03:40 UTC
+  workflow_dispatch:
+    inputs:
+      task:
+        description: What to run
+        type: choice
+        options: [scan, research]
+        default: scan
+
+permissions:
+  contents: write
+
+# Scans and research share one state branch — never let two write at once
+concurrency:
+  group: signals
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TASK: ${{ (github.event.schedule == '40 3 * * 0' && 'research') || inputs.task || 'scan' }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SIGNAL_ACCOUNT_BALANCE: ${{ vars.SIGNAL_ACCOUNT_BALANCE || '100' }}
+      SIGNAL_ACCOUNT_TYPE: ${{ vars.SIGNAL_ACCOUNT_TYPE || 'cent' }}
+      SIGNAL_RISK_PCT: ${{ vars.SIGNAL_RISK_PCT || '2' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci --omit=dev
+
+      - name: Restore state
+        run: |
+          mkdir -p data
+          if git ls-remote --exit-code --heads origin signals-state >/dev/null; then
+            git fetch --depth 1 origin signals-state
+            for f in $(git ls-tree --name-only FETCH_HEAD); do
+              git show "FETCH_HEAD:$f" > "data/$f"
+            done
+            echo "restored: $(git ls-tree --name-only FETCH_HEAD | tr '\n' ' ')"
+          else
+            echo "no state branch yet — first run starts fresh"
+          fi
+
+      - name: Scan
+        if: env.TASK == 'scan'
+        run: |
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then
+            echo "::warning::TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID secrets missing — running in dry-run"
+          fi
+          npm run signals -- --once
+
+      - name: Research
+        if: env.TASK == 'research'
+        run: npm run research
+
+      - name: Save state
+        if: always()
+        run: |
+          git config user.name "fiper-signals"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin signals-state >/dev/null; then
+            git fetch --depth 1 origin signals-state
+            git worktree add /tmp/state FETCH_HEAD
+            cd /tmp/state
+          else
+            git worktree add --detach /tmp/state
+            cd /tmp/state
+            git switch --orphan signals-state-new
+          fi
+          for f in signals-state.json swing-profile.json signal-profile.json swing-report.md research-report.md; do
+            [ -f "$GITHUB_WORKSPACE/data/$f" ] && cp "$GITHUB_WORKSPACE/data/$f" .
+          done
+          git add -A
+          if git diff --cached --quiet; then echo "state unchanged"; exit 0; fi
+          git commit -q -m "signals: $TASK $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push origin HEAD:refs/heads/signals-state

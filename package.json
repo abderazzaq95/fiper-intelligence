@@ -4,11 +4,18 @@
   "description": "Market intelligence API — aggregates, caches and interprets market data for the Fiper terminal",
   "type": "module",
   "main": "src/index.js",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "status": "node --input-type=module -e \"const r=await fetch('http://localhost:8080/api/status');console.log(JSON.stringify(await r.json(),null,2))\""
+    "status": "node --input-type=module -e \"const r=await fetch('http://localhost:8080/api/status');console.log(JSON.stringify(await r.json(),null,2))\"",
+    "research": "node --use-system-ca scripts/research.js",
+    "diagnose": "node --use-system-ca scripts/diagnose.js",
+    "signals": "node --use-system-ca scripts/signals.js",
+    "telegram": "node --use-system-ca scripts/telegram.js",
+    "replay": "node --use-system-ca scripts/replay.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

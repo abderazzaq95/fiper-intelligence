@@ -95,4 +95,13 @@ export async function startScheduler() {
   setInterval(() => refreshBroker().catch(e => log.error('broker', e.message)), config.refresh.broker);
   setInterval(() => refreshClosedTrades().catch(e => log.error('trade-outcomes', e.message)), config.refresh.broker);
   setInterval(() => evaluateTrades().catch(e => log.error('trade-eval', e.message)), config.refresh.tradeEval);
+
+  // Opt-in: the standalone `npm run signals` is the default way to run the scanner
+  if ((process.env.SIGNALS_ENABLED || 'false').toLowerCase() === 'true') {
+    const { scanOnce } = await import('../signals/scanner.js');
+    const scan = () => scanOnce().catch(e => log.error('signals', e.message));
+    scan();
+    setInterval(scan, 5 * 60_000);
+    log.ok('signal scanner running (every 5 min)');
+  }
 }

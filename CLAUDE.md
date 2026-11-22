@@ -84,6 +84,17 @@ Candle Analysis runs real pattern detection (doji, hammer, shooting star, engulf
 
 **Latency and accuracy are the product.** Reviews of comparable tools flag news delay and thin bias signals as the main complaints. Treat both as correctness bugs, not polish.
 
+## Signal engine (`src/signals/`) → Telegram
+
+Research-gated trade signals for XAUUSD, USTEC, BTCUSD. **The scanner only signals what the latest `npm run research` enabled** — an instrument whose edge fails out-of-sample goes silent. Keep that gate.
+
+- `swing.js` — daily "dip in an uptrend" (RSI(2) < 10 above the 200-day SMA, exit on close > 5-day SMA, 10-day time stop, 3-ATR stop). Rules fixed at published defaults — **do not add a parameter search**; the lack of one is why its numbers are believable. Split 70/30 in time; enabled only if both halves have positive expectancy after spread + swap.
+- `research.js` + `strategies.js`/`features.js`/`model.js` — hourly playbook: six setups filtered by a walk-forward logistic model; train 50 / validation 25 / holdout 25. Settings chosen on validation only; holdout touched once. Currently all disabled — do not loosen criteria to make them pass.
+- `backtest.js` — conservative fills: next-bar open entry, stop assumed first when a bar spans both levels, gaps fill at open.
+- `scanner.js` — live loop, alerts entries and exits, records live outcomes in `data/signals-state.json`.
+- Feeds are proxies (GC=F, NQ=F, Binance), not Exness quotes — alerts give stop/target as distances for that reason.
+- Commands: `npm run research | signals [-- --once] | replay -- USTEC 200 | diagnose -- XAUUSD | telegram -- chats|test`. Corporate TLS on the dev PC needs `--use-system-ca` (already in the npm scripts).
+
 ## Conventions
 
 - ESM everywhere, Node 20+
