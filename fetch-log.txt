@@ -50,3 +50,6 @@
   skip 2024/07/02/BID_candles_min_1.bi5: fetch failed
   skip 2024/07/04/BID_candles_min_1.bi5: fetch failed
 2024-08: 28860 min bars, median 2474.39, spread median 0.397 p95 0.460, 2 day(s) still missing
+2024-07: 31587 min bars, median 2390.78, spread median 0.390 p95 0.447
+  skip 2024/05/12/BID_candles_min_1.bi5: fetch failed
+2024-06: 26187 min bars, median 2326.18, spread median 0.390 p95 0.450, 1 day(s) still missing
