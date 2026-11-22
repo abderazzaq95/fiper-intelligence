@@ -14,6 +14,7 @@ if (cmd === 'chats') {
   if (!telegramEnabled()) { console.log('Set TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID in .env first.'); process.exit(1); }
   const r = await sendTelegram('✅ <b>Fiper Signals</b> connected. You will receive validated trade signals here.');
   console.log(r ? 'Sent.' : 'Failed — see error above.');
+  if (!r) process.exit(1); // a green CI run must mean the message really arrived
 } else {
   console.log('Usage: npm run telegram -- chats | test');
 }
