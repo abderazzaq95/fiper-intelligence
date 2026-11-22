@@ -7,9 +7,18 @@ import { gunzipSync } from 'node:zlib';
  * ask ≈ bid + sp. Float32 keeps gold's 3 decimals exact enough (error
  * < 0.001 at $4,000) while halving memory.
  */
-export async function loadM1(dir = new URL('../../../data/gold/m1/', import.meta.url)) {
-  const files = (await readdir(dir)).filter(f => f.endsWith('.csv.gz')).sort();
+export async function loadM1(dir = new URL('../../../data/gold/m1/', import.meta.url), { contiguous = true } = {}) {
+  let files = (await readdir(dir)).filter(f => f.endsWith('.csv.gz')).sort();
   if (!files.length) throw new Error(`no gold data in ${dir} — run: npm run gold:pull`);
+  // While the download is still filling in, history has holes. A gap
+  // inside the series would corrupt prior-day levels and the time split,
+  // so by default only the most recent unbroken run of months is used.
+  if (contiguous) {
+    const idx = f => { const [y, mo] = f.slice(0, 7).split('-').map(Number); return y * 12 + mo; };
+    let start = files.length - 1;
+    while (start > 0 && idx(files[start]) - idx(files[start - 1]) === 1) start--;
+    files = files.slice(start);
+  }
   const chunks = [];
   let n = 0;
   for (const f of files) {

@@ -13,19 +13,47 @@
  */
 export const DEFAULTS = { slip: 0.05, maxSpread: 1.5 };
 
+/** Gold pip as quoted on MT5/Exness: $0.10. 20 pips = $2.00. */
+export const PIP = 0.1;
+
 /**
- * @param m       minute data from loadM1
- * @param i       minute index to enter at (its open)
- * @param trade   { dir, stop, tp, exitAt?: unix sec hard time exit, beAt?: R to move stop to entry, trailR?: trailing distance in R once beAt hit }
- * @returns       { R, outcome, exitIdx, entry, risk } or null if not enterable (spread blown out / stop on wrong side / no data)
+ * Market order at the open of minute i.
+ * @param trade { dir, stop, tp, exitAt?: unix sec hard time exit, beAt?: R to move stop to entry, trailR?: trailing distance in R once beAt hit }
+ * @returns { R, outcome, exitIdx, entry, risk, ... } or null if not enterable
  */
 export function execute(m, i, trade, opt = DEFAULTS) {
   if (i >= m.n) return null;
-  const { dir } = trade;
   const sp0 = m.sp[Math.max(0, i - 1)];
   // A broker spread this wide means rollover or news — no sane entry happens there
   if (sp0 > opt.maxSpread) return null;
-  const entry = dir > 0 ? m.o[i] + sp0 : m.o[i];
+  const entry = trade.dir > 0 ? m.o[i] + sp0 : m.o[i];
+  return manage(m, i, entry, trade, opt, false);
+}
+
+/**
+ * Limit order resting at `trade.limit` from minute `from` until `expiryT`.
+ * A long limit fills when the ASK trades down to it; a short when the BID
+ * trades up to it. Gaps through the level fill at the (better) open.
+ *
+ * The fill minute is treated pessimistically: its stop side counts (we
+ * cannot know if the low came after the fill), its target side does not.
+ */
+export function executeLimit(m, from, expiryT, trade, opt = DEFAULTS) {
+  const { dir, limit } = trade;
+  for (let j = from; j < m.n; j++) {
+    if (m.t[j] >= expiryT) return null;
+    const sp = m.sp[j];
+    const touched = dir > 0 ? m.l[j] + sp <= limit : m.h[j] >= limit;
+    if (!touched) continue;
+    if (sp > opt.maxSpread) return null;
+    const entry = dir > 0 ? Math.min(limit, m.o[j] + sp) : Math.max(limit, m.o[j]);
+    return manage(m, j, entry, trade, opt, true);
+  }
+  return null;
+}
+
+function manage(m, i, entry, trade, opt, fillMinute) {
+  const { dir } = trade;
   const risk = dir * (entry - trade.stop);
   if (!(risk > 0)) return null;
   const tp = trade.tp;
@@ -34,7 +62,6 @@ export function execute(m, i, trade, opt = DEFAULTS) {
 
   for (let j = i; j < m.n; j++) {
     if (m.t[j] >= end) return close(j, dir > 0 ? m.o[j] : m.o[j] + m.sp[j], 'TIME');
-    // Prices the position is exposed to this minute
     const sp = m.sp[j];
     const adverse = dir > 0 ? m.l[j] : m.h[j] + sp;    // what can hit the stop
     const favour = dir > 0 ? m.h[j] : m.l[j] + sp;     // what can hit the target
@@ -44,10 +71,11 @@ export function execute(m, i, trade, opt = DEFAULTS) {
       const gapped = j > i && (dir > 0 ? open < stop : open > stop);
       return close(j, gapped ? open : stop - dir * opt.slip, armed ? 'BE' : 'SL');
     }
-    if (tp != null && (dir > 0 ? favour >= tp : favour <= tp)) return close(j, tp, 'TP');
+    const firstFill = fillMinute && j === i;
+    if (!firstFill && tp != null && (dir > 0 ? favour >= tp : favour <= tp)) return close(j, tp, 'TP');
 
     // Management updates take effect from the NEXT minute — no peeking inside the bar
-    if (dir > 0 ? favour > best : favour < best) best = favour;
+    if (!firstFill && (dir > 0 ? favour > best : favour < best)) best = favour;
     if (trade.beAt != null && !armed && dir * (best - entry) >= trade.beAt * risk) {
       armed = true;
       stop = entry + dir * 0.1 * risk; // lock a sliver so the scratch covers the spread
