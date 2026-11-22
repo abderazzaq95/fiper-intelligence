@@ -1,51 +1,48 @@
 skip 2016/00/01/BID_candles_min_1.bi5: fetch failed
-skip 2016/00/02/BID_candles_min_1.bi5: fetch failed
-skip 2016/00/02/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/00/03/BID_candles_min_1.bi5: fetch failed
 skip 2016/00/01/ASK_candles_min_1.bi5: HTTP 503
-skip 2016/00/04/BID_candles_min_1.bi5: fetch failed
-skip 2016/00/04/ASK_candles_min_1.bi5: HTTP 503
-2016-01: 3 day(s) failed — not saved, will retry next run
-skip 2016/01/03/BID_candles_min_1.bi5: HTTP 503
-2016-02: 1 day(s) failed — not saved, will retry next run
-2016-03: 30420 min bars, median 1244.69, spread median 0.330 p95 0.406
-skip 2016/03/29/ASK_candles_min_1.bi5: fetch failed
-2016-04: 1 day(s) failed — not saved, will retry next run
-2016-05: 30236 min bars, median 1268.20, spread median 0.337 p95 0.406
-2016-06: 30356 min bars, median 1279.32, spread median 0.340 p95 0.442
-skip 2016/06/24/ASK_candles_min_1.bi5: fetch failed
+skip 2016/00/12/BID_candles_min_1.bi5: HTTP 503
+skip 2016/00/12/ASK_candles_min_1.bi5: fetch failed
+skip 2016/00/22/BID_candles_min_1.bi5: HTTP 503
+skip 2016/00/24/BID_candles_min_1.bi5: fetch failed
+skip 2016/00/24/ASK_candles_min_1.bi5: fetch failed
+2016-01: 5 day(s) failed — not saved, will retry next run
+skip 2016/01/02/BID_candles_min_1.bi5: HTTP 503
+skip 2016/01/02/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/01/04/ASK_candles_min_1.bi5: fetch failed
+skip 2016/01/05/ASK_candles_min_1.bi5: fetch failed
+skip 2016/01/15/BID_candles_min_1.bi5: HTTP 503
+skip 2016/01/17/BID_candles_min_1.bi5: fetch failed
+skip 2016/01/15/ASK_candles_min_1.bi5: fetch failed
+skip 2016/01/26/ASK_candles_min_1.bi5: HTTP 503
+skip 2016/01/27/BID_candles_min_1.bi5: HTTP 503
+2016-02: 7 day(s) failed — not saved, will retry next run
+skip 2016/03/02/BID_candles_min_1.bi5: fetch failed
+skip 2016/03/17/BID_candles_min_1.bi5: fetch failed
+skip 2016/03/18/BID_candles_min_1.bi5: fetch failed
+skip 2016/03/24/BID_candles_min_1.bi5: HTTP 503
+skip 2016/03/24/ASK_candles_min_1.bi5: fetch failed
+skip 2016/03/25/ASK_candles_min_1.bi5: fetch failed
+2016-04: 5 day(s) failed — not saved, will retry next run
+skip 2016/06/05/BID_candles_min_1.bi5: HTTP 503
 2016-07: 1 day(s) failed — not saved, will retry next run
-skip 2016/07/03/ASK_candles_min_1.bi5: HTTP 503
-skip 2016/07/04/BID_candles_min_1.bi5: HTTP 503
-skip 2016/07/04/ASK_candles_min_1.bi5: fetch failed
-skip 2016/07/05/ASK_candles_min_1.bi5: fetch failed
-skip 2016/07/14/ASK_candles_min_1.bi5: HTTP 503
-skip 2016/07/15/ASK_candles_min_1.bi5: fetch failed
-skip 2016/07/27/ASK_candles_min_1.bi5: HTTP 503
-2016-08: 6 day(s) failed — not saved, will retry next run
-2016-09: 30000 min bars, median 1325.45, spread median 0.292 p95 0.380
-2016-10: 29095 min bars, median 1265.44, spread median 0.282 p95 0.366
-2016-11: 29851 min bars, median 1225.74, spread median 0.282 p95 0.396
-skip 2016/11/02/BID_candles_min_1.bi5: fetch failed
-2016-12: 1 day(s) failed — not saved, will retry next run
-skip 2017/00/02/BID_candles_min_1.bi5: fetch failed
-skip 2017/00/02/ASK_candles_min_1.bi5: fetch failed
-2017-01: 1 day(s) failed — not saved, will retry next run
-skip 2017/01/01/BID_candles_min_1.bi5: The operation was aborted due to timeout
-skip 2017/01/03/BID_candles_min_1.bi5: fetch failed
-skip 2017/01/04/BID_candles_min_1.bi5: fetch failed
-skip 2017/01/03/ASK_candles_min_1.bi5: fetch failed
-skip 2017/01/04/ASK_candles_min_1.bi5: fetch failed
-file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:51
+2016-08: 31740 min bars, median 1340.33, spread median 0.302 p95 0.393
+2016-12: 28922 min bars, median 1156.12, spread median 0.284 p95 0.378
+skip 2017/00/09/BID_candles_min_1.bi5: HTTP 503
+skip 2017/00/07/ASK_candles_min_1.bi5: fetch failed
+skip 2017/00/09/ASK_candles_min_1.bi5: fetch failed
+skip 2017/00/10/BID_candles_min_1.bi5: fetch failed
+file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:64
         if (++consecutiveFailures >= 5) throw new Error(`feed unavailable (5 files failed in a row, last: ${url}: ${e.message})`);
                                               ^
 
-Error: feed unavailable (5 files failed in a row, last: https://datafeed.dukascopy.com/datafeed/XAUUSD/2017/01/05/BID_candles_min_1.bi5: HTTP 503)
-    at download (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:51:47)
+Error: feed unavailable (5 files failed in a row, last: https://datafeed.dukascopy.com/datafeed/XAUUSD/2017/00/11/BID_candles_min_1.bi5: fetch failed)
+    at download (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:64:47)
     at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at async fetchDay (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:84:15)
-    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:105:65
-    at async Promise.all (index 0)
-    at async fetchMonth (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:104:3)
-    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:121:18
+    at async fetchDay (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:97:15)
+    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:118:65
+    at async Promise.all (index 1)
+    at async fetchMonth (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:117:3)
+    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:134:18
 
 Node.js v24.22.3
