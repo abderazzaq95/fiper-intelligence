@@ -17,6 +17,7 @@
 import { mkdir, writeFile, access } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { gzipSync } from 'node:zlib';
+import { dirname, resolve } from 'node:path';
 
 const OUT = process.argv[2] || 'data/gold/m1';
 const FROM_YEAR = Number(process.argv[3] || new Date().getUTCFullYear() - 10);
@@ -29,6 +30,18 @@ const DAY = 86400_000;
 
 const pad = n => String(n).padStart(2, '0');
 const missingDays = [];
+
+// --commit-every N: in CI, commit + push the data worktree every N saved months
+const ceArg = process.argv.indexOf('--commit-every');
+const COMMIT_EVERY = ceArg > 0 ? Number(process.argv[ceArg + 1]) : 0;
+function checkpoint(msg) {
+  const cwd = dirname(resolve(OUT)); // the data worktree root (OUT is its m1/ folder)
+  const git = (...a) => spawnSync('git', a, { cwd, stdio: 'inherit' }).status;
+  git('add', '-A');
+  if (git('diff', '--cached', '--quiet') === 0) return;
+  git('commit', '-q', '-m', msg);
+  if (git('push', '-q', 'origin', 'HEAD:refs/heads/data-xauusd') !== 0) console.warn('checkpoint push failed — will retry at the end');
+}
 const exists = p => access(p).then(() => true, () => false);
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
@@ -131,6 +144,8 @@ for (let y = FROM_YEAR; y <= now.getUTCFullYear(); y++) {
     const line = `${y}-${pad(m + 1)}: ${rows.length} min bars, median ${med.toFixed(2)}, spread median ${spreads[spreads.length >> 1].toFixed(3)} p95 ${spreads[Math.floor(spreads.length * 0.95)].toFixed(3)}`;
     console.log(line);
     summary.push(line);
+    // Checkpoint: push what we have every few months, so a slow or killed run loses nothing and progress is visible
+    if (COMMIT_EVERY && summary.length % COMMIT_EVERY === 0) checkpoint(`XAUUSD M1 through ${y}-${pad(m + 1)}`);
   }
 }
 console.log(`\ndone — ${summary.length} month file(s) written to ${OUT}${missingDays.length ? `; ${missingDays.length} day(s) failed and will be retried` : ''}`);

@@ -13,3 +13,5 @@ web/tsconfig.tsbuildinfo
 # signal engine: cached price history and live state (profiles + reports are committed)
 data/history/
 data/signals-state.json
+# gold minute history — lives on the data-xauusd branch, pulled with npm run gold:pull
+data/gold/

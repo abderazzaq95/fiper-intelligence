@@ -54,7 +54,7 @@ jobs:
       - name: Download missing months
         run: |
           set -o pipefail
-          node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016 2>&1 | tee /tmp/gold/fetch-log.txt
+          node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016 --commit-every 6 2>&1 | tee /tmp/gold/fetch-log.txt
 
       - name: Commit and push
         if: always()
