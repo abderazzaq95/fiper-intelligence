@@ -24,7 +24,7 @@ on:
       task:
         description: What to run
         type: choice
-        options: [scan, research]
+        options: [scan, research, test]
         default: scan
 
 permissions:
@@ -76,6 +76,10 @@ jobs:
             echo "::warning::TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID secrets missing — running in dry-run"
           fi
           npm run signals -- --once
+
+      - name: Telegram test
+        if: env.TASK == 'test'
+        run: npm run telegram -- test
 
       - name: Research
         if: env.TASK == 'research'
