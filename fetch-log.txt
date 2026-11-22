@@ -1,0 +1,15 @@
+file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:40
+      if (attempt === 3) throw new Error(`${url}: ${e.message}`);
+                               ^
+
+Error: https://datafeed.dukascopy.com/datafeed/XAUUSD/2016/00/04/BID_candles_min_1.bi5: HTTP 503
+    at download (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:40:32)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async Promise.all (index 0)
+    at async fetchDay (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:70:22)
+    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:89:65
+    at async Promise.all (index 3)
+    at async fetchMonth (file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:88:3)
+    at async file:///home/runner/work/fiper-intelligence/fiper-intelligence/scripts/gold/fetch-dukascopy.js:104:18
+
+Node.js v24.22.3
