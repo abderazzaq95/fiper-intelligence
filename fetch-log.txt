@@ -5,3 +5,8 @@
   skip 2026/06/06/BID_candles_min_1.bi5: The operation was aborted due to timeout
 2026-07: 29999 min bars, median 4062.87, spread median 0.680 p95 0.880, 1 day(s) still missing
 2026-06: 30119 min bars, median 4224.86, spread median 0.620 p95 0.817
+  skip 2026/04/07/BID_candles_min_1.bi5: The operation was aborted due to timeout
+  skip 2026/04/08/BID_candles_min_1.bi5: fetch failed
+  skip 2026/04/10/BID_candles_min_1.bi5: HTTP 503
+2026-05: 26067 min bars, median 4553.16, spread median 0.610 p95 0.910, 3 day(s) still missing
+2026-04: 28977 min bars, median 4727.20, spread median 0.710 p95 0.990
