@@ -1,0 +1,56 @@
+# Builds and maintains 10 years of XAUUSD 1-minute bid/ask history from
+# Dukascopy, on GitHub's servers. The data lives on the `data-xauusd`
+# branch (one gzipped CSV per month, ~25–50 MB total) so research can
+# read it anywhere with a plain `git fetch`.
+#
+# First run downloads everything (expect 30–90 minutes). After that,
+# the weekly run only fetches the current month.
+
+name: Gold data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '10 2 * * 6'   # Saturdays 02:10 UTC, after the weekly close
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gold-data
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Check out data branch
+        run: |
+          git config user.name "fiper-data"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin data-xauusd >/dev/null; then
+            git fetch --depth 1 origin data-xauusd
+            git worktree add /tmp/gold FETCH_HEAD
+          else
+            git worktree add --detach /tmp/gold
+            cd /tmp/gold && git switch --orphan data-xauusd-new
+          fi
+
+      - name: Download missing months
+        run: node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016
+
+      - name: Commit and push
+        if: always()
+        run: |
+          cd /tmp/gold
+          git add -A
+          if git diff --cached --quiet; then echo "no new data"; exit 0; fi
+          git commit -q -m "XAUUSD M1 bid/ask through $(date -u +%Y-%m-%d)"
+          git push origin HEAD:refs/heads/data-xauusd
