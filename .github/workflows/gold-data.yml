@@ -10,6 +10,12 @@ name: Gold data
 
 on:
   workflow_dispatch:
+  # Pushing a change to the downloader starts a run — no manual click needed
+  push:
+    branches: [main]
+    paths:
+      - scripts/gold/fetch-dukascopy.js
+      - .github/workflows/gold-data.yml
   schedule:
     - cron: '10 2 * * 6'   # Saturdays 02:10 UTC, after the weekly close
 
@@ -43,8 +49,12 @@ jobs:
             cd /tmp/gold && git switch --orphan data-xauusd-new
           fi
 
+      # The log is committed with the data, so the run can be checked with
+      # plain git — no Actions UI or API token needed
       - name: Download missing months
-        run: node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016
+        run: |
+          set -o pipefail
+          node scripts/gold/fetch-dukascopy.js /tmp/gold/m1 2016 2>&1 | tee /tmp/gold/fetch-log.txt
 
       - name: Commit and push
         if: always()
