@@ -92,3 +92,5 @@
 2022-12: 28907 min bars, median 1796.38, spread median 0.360 p95 0.495
 2022-11: 29935 min bars, median 1747.53, spread median 0.424 p95 0.525
 2022-10: 29082 min bars, median 1662.87, spread median 0.394 p95 0.504
+2022-09: 30089 min bars, median 1676.13, spread median 0.337 p95 0.440
+2022-08: 31734 min bars, median 1766.68, spread median 0.348 p95 0.464
