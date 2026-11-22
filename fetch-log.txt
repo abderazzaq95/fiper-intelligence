@@ -66,3 +66,6 @@
   skip 2024/00/07/BID_candles_min_1.bi5: fetch failed
 2024-01: 27508 min bars, median 2029.78, spread median 0.327 p95 0.390, 3 day(s) still missing
 2023-12: 27534 min bars, median 2034.42, spread median 0.330 p95 0.397
+  skip 2023/10/05/BID_candles_min_1.bi5: HTTP 503
+2023-11: 29764 min bars, median 1984.00, spread median 0.310 p95 0.370, 1 day(s) still missing
+2023-10: 30464 min bars, median 1921.21, spread median 0.310 p95 0.390
