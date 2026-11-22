@@ -84,3 +84,6 @@
 2023-06: 30075 min bars, median 1946.99, spread median 0.337 p95 0.424
 2023-05: 31583 min bars, median 1984.69, spread median 0.330 p95 0.431
 2023-04: 26328 min bars, median 1998.51, spread median 0.340 p95 0.437
+  skip 2023/02/20/BID_candles_min_1.bi5: The operation was aborted due to timeout
+2023-03: 30295 min bars, median 1917.86, spread median 0.337 p95 0.420, 1 day(s) still missing
+2023-02: 27443 min bars, median 1852.18, spread median 0.340 p95 0.417
