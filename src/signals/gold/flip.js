@@ -128,9 +128,9 @@ function emaArr(src, n) {
   return out;
 }
 
-let cache = null;
+const cache = new WeakMap(); // one entry per data segment
 function microContext(ctx) {
-  if (cache?.m === ctx.m) return cache;
+  if (cache.has(ctx.m)) return cache.get(ctx.m);
   const { m } = ctx;
   const m5 = aggregate(m, 5), h1 = aggregate(m, 60);
   const e20 = emaArr(m5.c, 20);
@@ -145,8 +145,9 @@ function microContext(ctx) {
   // Gold day of each M5 bar, via the day index of its last minute
   const dayOfMin = new Int32Array(m.n);
   for (let k = 0; k < ctx.d.n; k++) for (let i = ctx.d.i0[k]; i <= ctx.d.i1[k]; i++) dayOfMin[i] = k;
-  cache = { m, m5, h1, e20, h50, h200, h1Idx, dayOfMin };
-  return cache;
+  const out = { m, m5, h1, e20, h50, h200, h1Idx, dayOfMin };
+  cache.set(m, out);
+  return out;
 }
 
 export const MICRO_PULLBACK = {

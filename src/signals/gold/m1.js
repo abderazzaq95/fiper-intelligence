@@ -7,15 +7,39 @@ import { gunzipSync } from 'node:zlib';
  * ask ≈ bid + sp. Float32 keeps gold's 3 decimals exact enough (error
  * < 0.001 at $4,000) while halving memory.
  */
-export async function loadM1(dir = new URL('../../../data/gold/m1/', import.meta.url), { span = 'longest' } = {}) {
-  let files = (await readdir(dir)).filter(f => f.endsWith('.csv.gz')).sort();
+/**
+ * Every unbroken run of months as its own minute series — so a strategy can
+ * be developed on one period and judged on later, separate ones without
+ * prior-day levels ever bridging a gap.
+ */
+export async function loadSegments(dir) {
+  const out = [];
+  for (const run of await monthRuns(dir)) out.push(await loadM1(dir, { files: run }));
+  return out;
+}
+
+async function monthRuns(dir) {
+  const { stat } = await import('node:fs/promises');
+  const files = (await readdir(dir)).filter(f => f.endsWith('.csv.gz')).sort();
+  const sizes = await Promise.all(files.map(f => stat(new URL(f, dir)).then(s => s.size)));
+  const idx = f => { const [y, mo] = f.slice(0, 7).split('-').map(Number); return y * 12 + mo; };
+  const runs = [];
+  for (const f of files.filter((f, i) => sizes[i] > 30_000)) { // < ~2,000 rows = a cut-off stub, treat as a gap
+    const last = runs.at(-1);
+    if (last && idx(f) - idx(last.at(-1)) === 1) last.push(f); else runs.push([f]);
+  }
+  return runs;
+}
+
+export async function loadM1(dir = new URL('../../../data/gold/m1/', import.meta.url), { span = 'longest', files: given = null } = {}) {
+  let files = given ?? (await readdir(dir)).filter(f => f.endsWith('.csv.gz')).sort();
   if (!files.length) throw new Error(`no gold data in ${dir} — run: npm run gold:pull`);
   // History can have holes (downloads in progress, truncated exports). A
   // gap inside the series corrupts prior-day levels and the time split,
   // so only one unbroken run of months is used: the longest by default,
   // or the most recent with span: 'recent'. Near-empty months (< 2,000
   // minutes, e.g. a cut-off export's last day) count as gaps.
-  if (span !== 'all') {
+  if (!given && span !== 'all') {
     const { stat } = await import('node:fs/promises');
     const sizes = await Promise.all(files.map(f => stat(new URL(f, dir)).then(s => s.size)));
     const idx = f => { const [y, mo] = f.slice(0, 7).split('-').map(Number); return y * 12 + mo; };

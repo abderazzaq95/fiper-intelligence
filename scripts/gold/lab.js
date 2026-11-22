@@ -17,10 +17,11 @@
  */
 import { mkdir, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { loadM1 } from '../../src/signals/gold/m1.js';
+import { loadM1, loadSegments } from '../../src/signals/gold/m1.js';
 import { buildContext } from '../../src/signals/gold/context.js';
 import { FLIP_STRATEGIES } from '../../src/signals/gold/flip.js';
 import { HP_STRATEGIES } from '../../src/signals/gold/hp.js';
+import { DISCOVER_STRATEGIES } from '../../src/signals/gold/discover.js';
 import { combos, GOLD_STRATEGIES } from '../../src/signals/gold/strategies.js';
 import { wilsonLower } from '../../src/signals/model.js';
 import { monteCarlo } from '../../src/signals/backtest.js';
@@ -30,8 +31,8 @@ const opt = k => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : null
 const SET = opt('--set') || 'all';
 const OBJECTIVE = opt('--objective') || (SET === 'hp' ? 'win' : 't');
 const only = args.find(a => /^[A-Z,]+$/.test(a))?.split(',');
-const POOL = { flip: FLIP_STRATEGIES, hp: HP_STRATEGIES, core: GOLD_STRATEGIES, all: [...HP_STRATEGIES, ...FLIP_STRATEGIES, ...GOLD_STRATEGIES] }[SET];
-if (!POOL) throw new Error(`unknown --set ${SET} (hp | flip | core | all)`);
+const POOL = { flip: FLIP_STRATEGIES, hp: HP_STRATEGIES, core: GOLD_STRATEGIES, discover: DISCOVER_STRATEGIES, all: [...HP_STRATEGIES, ...FLIP_STRATEGIES, ...GOLD_STRATEGIES, ...DISCOVER_STRATEGIES] }[SET];
+if (!POOL) throw new Error(`unknown --set ${SET} (hp | flip | core | discover | all)`);
 
 const pct = v => `${(v * 100).toFixed(1)}%`;
 const f2 = v => (Number.isFinite(v) ? v.toFixed(2) : '∞');
@@ -60,31 +61,39 @@ function stats(ts, weeks) {
 // Exness's own tick history is the ground truth (it is the broker we trade on); Dukascopy is the fallback
 const EXNESS = new URL('../../data/gold/exness-m1/', import.meta.url);
 const SOURCE = opt('--source') || (existsSync(EXNESS) ? 'exness' : 'dukascopy');
-const m = await loadM1(SOURCE === 'exness' ? EXNESS : undefined);
-console.log(`source: ${SOURCE}`);
-const ctx = buildContext(m);
-const days = ctx.d;
-const spanYears = (m.t[m.n - 1] - m.t[0]) / (365.25 * 86400);
-const cut1 = days.t[Math.floor(days.n * 0.6)], cut2 = days.t[Math.floor(days.n * 0.8)];
-const T0 = m.t[0], T1 = m.t[m.n - 1] + 60;
-const part = (ts, a, b) => ts.filter(t => t.entryT >= a && t.entryT < b);
-const weeksIn = (a, b) => (b - a) / (7 * 86400);
+// Each unbroken stretch of months is its own segment. With 3+ segments the
+// split is natural and leak-free: develop on all but the last two,
+// validate on the second-to-last, holdout on the last. With one segment,
+// its days are split 60/20/20 in time.
+const segs = SOURCE === 'exness' ? await loadSegments(EXNESS) : [await loadM1()];
+const ctxs = segs.map(buildContext);
+const runAll = (S, p) => ctxs.flatMap(c => S.run(c, p)).sort((a, b) => a.entryT - b.entryT);
 const fmtD = s => new Date(s * 1000).toISOString().slice(0, 10);
+const T0 = segs[0].t[0], T1 = segs.at(-1).t[segs.at(-1).n - 1] + 60;
+let cut1, cut2;
+if (segs.length >= 3) { cut1 = segs.at(-2).t[0]; cut2 = segs.at(-1).t[0]; }
+else { const d = ctxs.at(-1).d; cut1 = d.t[Math.floor(d.n * 0.6)]; cut2 = d.t[Math.floor(d.n * 0.8)]; }
+const part = (ts, a, b) => ts.filter(t => t.entryT >= a && t.entryT < b);
+// Weeks of data actually present between a and b (gaps between segments do not count)
+const weeksIn = (a, b) => segs.reduce((w, s) => w + Math.max(0, Math.min(b, s.t[s.n - 1]) - Math.max(a, s.t[0])), 0) / (7 * 86400);
+const spanYears = weeksIn(T0, T1) / 52.18;
+const totalDays = ctxs.reduce((s, c) => s + c.d.n, 0);
 const preliminary = spanYears < 3;
 
-console.log(`${m.n.toLocaleString()} minutes, ${days.n} gold days, ${fmtD(T0)} → ${fmtD(m.t[m.n - 1])} (${spanYears.toFixed(1)} years)${preliminary ? '  — PRELIMINARY: under 3 years of data' : ''}`);
+console.log(`source: ${SOURCE} — ${segs.length} segment(s): ${segs.map(s => `${fmtD(s.t[0])}→${fmtD(s.t[s.n - 1])}`).join(', ')}`);
+console.log(`${totalDays} gold days, ${spanYears.toFixed(1)} years of data${preliminary ? '  — PRELIMINARY: under 3 years' : ''}`);
 console.log(`set "${SET}", objective "${OBJECTIVE}"; develop < ${fmtD(cut1)} ≤ validate < ${fmtD(cut2)} ≤ holdout\n`);
 
 const L = [`# XAUUSD strategy lab — set "${SET}", objective "${OBJECTIVE}"`, '',
-  `${fmtD(T0)} → ${fmtD(m.t[m.n - 1])} (${spanYears.toFixed(1)} years of minute bid/ask). ${preliminary ? '**PRELIMINARY — less than 3 years of data; a direction, not a verdict.**' : ''}`,
-  'Real bid/ask fills, stop-first on ambiguous minutes, $0.05 stop slippage. Settings chosen on the first 60% of days only; validate and holdout never influence the choice.', ''];
+  `Source ${SOURCE}: ${segs.map(s => `${fmtD(s.t[0])} → ${fmtD(s.t[s.n - 1])}`).join(', ')} (${spanYears.toFixed(1)} years of minute bid/ask). ${preliminary ? '**PRELIMINARY — less than 3 years of data; a direction, not a verdict.**' : ''}`,
+  `Develop < ${fmtD(cut1)} ≤ validate < ${fmtD(cut2)} ≤ holdout. Real bid/ask fills, stop-first on ambiguous minutes, stop slippage. Settings chosen on develop only; validate and holdout never influence the choice.`, ''];
 
 for (const S of POOL.filter(s => !only || only.includes(s.id))) {
   const rows = combos(S.grid).map(p => {
-    const ts = S.run(ctx, p);
+    const ts = runAll(S, p);
     return { p, ts, dev: stats(part(ts, T0, cut1), weeksIn(T0, cut1)), val: stats(part(ts, cut1, cut2), weeksIn(cut1, cut2)), hold: stats(part(ts, cut2, T1), weeksIn(cut2, T1)) };
   });
-  const minDev = Math.max(30, Math.round(days.n * 0.6 / 20)); // at least ~1 trade a month
+  const minDev = Math.max(30, Math.round(weeksIn(T0, cut1) / 4.3));  // at least ~1 trade a month
   const ranked = rows
     .filter(r => r.dev.n >= minDev && (OBJECTIVE !== 'win' || (r.dev.exp > 0.03 && r.dev.pf > 1.1)))
     .sort((a, b) => OBJECTIVE === 'win' ? b.dev.winLow - a.dev.winLow : b.dev.t - a.dev.t);
